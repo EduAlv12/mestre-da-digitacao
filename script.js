@@ -154,7 +154,7 @@ let startTime = null;
 let previousInputValue = "";
 
 // ==========================================================================
-// AUDIO ENGINE (COM PERFIS DE TOM, VOLUME E MONOFONIA)
+// AUDIO ENGINE E SOM DE ERRO
 // ==========================================================================
 class AudioEngine {
   constructor() {
@@ -282,6 +282,30 @@ class AudioEngine {
     osc.stop(now + duration);
   }
 
+    playErrorSound() {
+    if (!this.enabled || this.profile === 'silent') return;
+    this.init();
+
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    // Ajustado para um som mais agudo e perceptível (onda triangular com frequência mais alta)
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(880, now); // Frequência aguda inicial (Nota Lá)
+    osc.frequency.exponentialRampToValueAtTime(440, now + 0.12);
+
+    gain.gain.setValueAtTime(0.12 * this.volume, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.12);
+  }
+
+
   playThemeSwitch() {
     if (!this.enabled || this.profile === 'silent') return;
     this.init();
@@ -401,7 +425,6 @@ if (hardcoreToggle) {
       );
       initTest();
     } else {
-      // Tentar desativar o modo Hardcore
       if (hardcoreConsecutivePerfect >= 3) {
         isHardcore = false;
         hardcoreConsecutivePerfect = 0;
@@ -416,7 +439,6 @@ if (hardcoreToggle) {
         );
         initTest();
       } else {
-        // Bloquear a desativação
         hardcoreToggle.checked = true;
         showHardcoreModal(
           "🔒 Modo Hardcore Bloqueado!",
@@ -755,7 +777,6 @@ function calculateMetrics(seconds) {
 
 if (hiddenInput) {
   hiddenInput.addEventListener('keydown', (e) => {
-    // BLOQUEIA APAGAR APENAS SE ESTIVER NO MODO HARDCORE
     if (isHardcore && (e.key === 'Backspace' || e.key === 'Delete')) {
       e.preventDefault();
     }
@@ -785,7 +806,6 @@ if (hiddenInput) {
 }
 
 function handleTyping() {
-  // SE ESTIVER NO MODO HARDCORE, BLOQUEIA REDUÇÃO DO TAMANHO DA STRING
   if (isHardcore && hiddenInput.value.length < previousInputValue.length) {
     hiddenInput.value = previousInputValue;
     return;
@@ -798,8 +818,17 @@ function handleTyping() {
     }
   }
 
+  const previousLength = previousInputValue.length;
   previousInputValue = hiddenInput.value;
   const inputChars = hiddenInput.value.split('');
+
+  // Toca o som de erro se uma nova letra inserida for incorreta
+  if (inputChars.length > previousLength) {
+    const lastIndex = inputChars.length - 1;
+    if (inputChars[lastIndex] !== currentText[lastIndex]) {
+      audioEngine.playErrorSound();
+    }
+  }
 
   if (!isRunning && inputChars.length > 0) {
     startTimer();
@@ -853,7 +882,6 @@ function endTest(finalAccuracy) {
   const finalWpm = calculateMetrics(finalTimeInSeconds);
   const diff = getDifficulty();
 
-  // ATUALIZAR PROGRESSO HARDCORE
   let hardcoreStatusMsg = "";
   if (isHardcore) {
     if (finalAccuracy === 100) {
