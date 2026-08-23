@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="default">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mestre da Digitação</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <main class="app-card">
+    <header class="app-header">
+      <h1 class="logo-title">⌨️ Mestre da Digitação</h1>
+      <div class="header-controls">
+        <div class="control-group">
+          <label>Modo / Dificuldade</label>
+          <button type="button" class="select-trigger" id="difficulty-trigger">
+            <span id="difficulty-trigger-text">Fácil</span>
+            <span class="trigger-icon">▾</span>
+          </button>
+        </div>
+        <div class="control-group">
+          <label>Tema</label>
+          <button type="button" class="select-trigger" id="theme-trigger">
+            <span id="theme-trigger-text">Azul Marinho</span>
+            <span class="trigger-icon">▾</span>
+          </button>
+        </div>
+        <div class="control-group">
+          <label>Troféus</label>
+          <button type="button" class="select-trigger btn-achievements-trigger" id="achievements-trigger">
+            <span>🏆 Conquistas</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-label">PPM</span>
+        <span class="metric-value" id="ppm-val">0</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Precisão</span>
+        <span class="metric-value" id="accuracy-val">100%</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Tempo</span>
+        <span class="metric-value" id="timer-val">0s</span>
+      </div>
+    </section>
+
+    <!-- Quadro de Medalhas -->
+    <section class="medals-box">
+      <div class="medals-title" id="medals-title">🏅 Medalhas (Modo Padrão)</div>
+      
+      <!-- Medalhas do Modo Padrão -->
+      <div class="medals-grid" id="standard-medals">
+        <div class="medal-item" id="badge-accuracy">
+          <span class="badge-counter" id="count-accuracy">0</span>
+          <div class="medal-icon">🎯</div>
+          <div class="medal-name">Precisão Total</div>
+          <div class="medal-req">≥ 90% Precisão</div>
+        </div>
+        <div class="medal-item" id="badge-time15">
+          <span class="badge-counter" id="count-time15">0</span>
+          <div class="medal-icon">⚡</div>
+          <div class="medal-name">Relâmpago</div>
+          <div class="medal-req" id="req-time15">Tempo ≤ 15s</div>
+        </div>
+        <div class="medal-item" id="badge-time30">
+          <span class="badge-counter" id="count-time30">0</span>
+          <div class="medal-icon">🥈</div>
+          <div class="medal-name">Arrancada</div>
+          <div class="medal-req" id="req-time30">Tempo ≤ 30s</div>
+        </div>
+        <div class="medal-item" id="badge-speed60">
+          <span class="badge-counter" id="count-speed60">0</span>
+          <div class="medal-icon">🥇</div>
+          <div class="medal-name">Mestre</div>
+          <div class="medal-req" id="req-speed60">50+ PPM</div>
+        </div>
+      </div>
+
+      <!-- Medalhas Exclusivas do Modo Personalizado -->
+      <div class="medals-grid hidden" id="custom-medals">
+        <div class="medal-item" id="badge-custom_first">
+          <span class="badge-counter" id="count-custom_first">0</span>
+          <div class="medal-icon">📜</div>
+          <div class="medal-name">Autoral</div>
+          <div class="medal-req">1º Texto Custom</div>
+        </div>
+        <div class="medal-item" id="badge-custom_long">
+          <span class="badge-counter" id="count-custom_long">0</span>
+          <div class="medal-icon">📚</div>
+          <div class="medal-name">Maratonista</div>
+          <div class="medal-req">≥ 150 Caracteres</div>
+        </div>
+        <div class="medal-item" id="badge-custom_speed">
+          <span class="badge-counter" id="count-custom_speed">0</span>
+          <div class="medal-icon">⚡</div>
+          <div class="medal-name">Super Ágil</div>
+          <div class="medal-req">50+ PPM Custom</div>
+        </div>
+        <div class="medal-item" id="badge-custom_perfect">
+          <span class="badge-counter" id="count-custom_perfect">0</span>
+          <div class="medal-icon">🎯</div>
+          <div class="medal-name">Perfeição</div>
+          <div class="medal-req">100% Precisão</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="typing-box" id="typing-box-container">
+      <div class="difficulty-tag" id="difficulty-tag">Nível: Fácil</div>
+      <div class="typing-wrapper">
+        <input 
+          type="text" 
+          id="hidden-input" 
+          name="typing_test_field_no_save"
+          autocomplete="one-time-code" 
+          autocorrect="off" 
+          autocapitalize="off" 
+          spellcheck="false" 
+          inputmode="text" 
+          aria-autocomplete="none" 
+          data-gramm="false" 
+          data-enable-grammarly="false" 
+        />
+        <div class="text-display" id="text-display" tabindex="0"></div>
+        <small class="focus-hint" id="focus-hint">Toque no quadro para abrir o teclado</small>
+      </div>
+
+      <div id="result-message" class="result-message hidden"></div>
+
+      <div class="action-bar" id="action-bar">
+        <button id="restart-btn" class="btn-accent">🔄 Nova Frase</button>
+        <button id="edit-custom-btn" class="btn-secondary hidden">✏️ Alterar Texto</button>
+      </div>
+    </section>
+
+    <footer class="app-footer">
+      Desenvolvido por Eduardo &bull; <a href="https://instagram.com/edu_xxyz" target="_blank">@edu_xxyz</a>
+    </footer>
+  </main>
+
+  <!-- POPUP: DIFICULDADE / MODO -->
+  <div class="modal-overlay" id="modal-difficulty">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Selecione o Modo ou Dificuldade</h3>
+        <button type="button" class="modal-close" data-close="modal-difficulty">&times;</button>
+      </div>
+      <div class="modal-body">
+        <button type="button" class="modal-option-btn" data-value="easy">
+          <div class="option-info">
+            <span class="option-label">🌱 Fácil</span>
+            <span class="option-desc">Frases curtas e vocabulário simples</span>
+          </div>
+          <span class="option-check">✓</span>
+        </button>
+        <button type="button" class="modal-option-btn" data-value="medium">
+          <div class="option-info">
+            <span class="option-label">⚡ Médio</span>
+            <span class="option-desc">Frases de tamanho médio e variadas</span>
+          </div>
+          <span class="option-check">✓</span>
+        </button>
+        <button type="button" class="modal-option-btn" data-value="hard">
+          <div class="option-info">
+            <span class="option-label">🔥 Difícil</span>
+            <span class="option-desc">Frases longas com estrutura complexa</span>
+          </div>
+          <span class="option-check">✓</span>
+        </button>
+        <button type="button" class="modal-option-btn" data-value="custom">
+          <div class="option-info">
+            <span class="option-label">✍️ Personalizado</span>
+            <span class="option-desc">Cole o seu próprio texto para praticar</span>
+          </div>
+          <span class="option-check">✓</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP: TEXTO PERSONALIZADO -->
+  <div class="modal-overlay" id="modal-custom-text">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Cole o seu Texto</h3>
+        <button type="button" class="modal-close" data-close="modal-custom-text">&times;</button>
+      </div>
+      <div class="modal-body">
+        <textarea id="custom-text-input" class="custom-textarea" rows="5" placeholder="Cole ou digite seu texto aqui (mínimo de 10 caracteres)..."></textarea>
+        <div id="custom-text-error" class="custom-text-error hidden">Insira um texto válido com pelo menos 10 caracteres.</div>
+        <button type="button" id="save-custom-text-btn" class="btn-accent">Iniciar Treino</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- POPUP: TEMA COM 15 OPÇÕES CATEGORIZADAS -->
+  <div class="modal-overlay" id="modal-theme">
+    <div class="modal-card modal-card-scrollable">
+      <div class="modal-header">
+        <h3 class="modal-title">Escolha o Tema Visual</h3>
+        <button type="button" class="modal-close" data-close="modal-theme">&times;</button>
+      </div>
+      <div class="modal-body">
+
+        <!-- CATEGORIA 1: ESCUROS -->
+        <div class="theme-category">
+          <div class="category-header">🌙 Modos Escuros</div>
+          
+          <button type="button" class="modal-option-btn" data-value="default">
+            <div class="option-info">
+              <span class="option-label">🌊 Azul Marinho</span>
+              <span class="option-desc">Elegância clássica em tons de azul escuro</span>
+            </div>
+            <span class="option-check">✓</span>
+          </button>
+
+          <button type="button" class="modal-option-btn" data-value="dracula">
+            <div class="option-info">
+              <span class="option-label">🔮 Dracula Cyber</span>
+              <span class="option-desc">Neon e contraste para desenvolvedores</span>
+            </div>
+            <span class="option-check">✓</span>
+          </button>
+
+          <button type="button" class="modal-option-btn" data-value="midnight">
+            <div class="option-info">
+              <span class="option-label">🌌 Meia-Noite Roxo</span>
+              <span class="option-desc">Tons profundos de roxo e violeta</span>
+            </div>
+            <span class="option-check">✓</span>
+          </button>
+
+          <button type="button" class="modal-option-btn" data-value="charcoal">
+            <div class="option-info">
+              <span class="option-label">🖤 Carvão Minimalista</span>
+              <span class="option-desc">Cinza escuro focado e sem distrações</span>
+            </div>
+            <span class="option-check">✓</span>
+          </button>
+
+          <button type="button" class="modal-option-btn" data-value="nordic-dark">
+            <div class="option-info">
+              <span class="option-label">❄️ Nórdico Escuro</span>
+              <span class="option-desc">Cores gélidas e sóbrias inspiradas no ártico</span>
+            </div>
+            <span class="option-check">✓</span>
+          </button>
+        </div>
+
+        <!-- CATEGORIA 2: CLAROS -->
+        <div class="theme-category">
+          <div class="category-header">☀️ Modos Claros</div>
+
+          <button type="button" class="modal-option-btn" data-value="light">
+            <div class="option-info">
+              <span class="option-label">🥛 Claro Clean</span>
+              <span class="option-desc">Interface limpa e minimalista</span>
+            </div>
+            <span class="option-check">✓</span>
+          </button>
+
+          <button type="button" class="modal-option-btn" data-value="paper">
+            <div class="option-info">
+              <span class="option-label">📜 Papel Sépia</span>
+              <span class="option-desc">Estilo livro clássico, confortável aos olhos</span>
+            </div>
+            <span class="option-check">✓</span>
+          </button>
+
+          <button type="button" class="modal-option-btn" data-value="pastel">
+            <div class="option-info">
+              <span class="option-label">🌸 Soft Pastel</span>
+              <span class="option-desc">Tons suaves em rosa e azul pastel</span>
+            </div>
+            <span class="option-check">✓</span>
+          </button>
+
+          <button type="button" class="modal-option-btn" data-value="nordic-light">
+            <div class="option-info">
+              <span class="option-label">🏔️ Nórdico Claro</span>
+              <span class="option-desc">Estética fria e neutra com foco em leitura</span>
+            </div>
+            <span class="option-check">✓</span>
+          </button>
+        </div>
+
+        <!-- CATEGORIA 3: RETRÔ & NOSTALGIA -->
+        <div class="theme-category">
+          <div class="category-header">📻 Retrô & Terminal</div>
+
+          <button type="button" class="modal-option-btn" data-value="amber">
+            <div class="option-info">
+              <span class="option-label">📻 Amber Retrô</span>
+              <span class="option-desc">Fósforo âmbar dos monitores dos anos 80</span>
+            </div>
+            <span class="option-check">✓</span>
+          </button>
+
+          <button type="button" class="modal-option-btn" data-value="matrix">
+            <div class="option-info">
+              <span class="option-label">📟 Matrix Terminal</span>
+              <span class="option-desc">Verde hacker em fundo preto absoluto</span>
+            </div>
+            <span class="option-check">✓</span>
+          </button>
+
+          <button type="button" class="modal-option-btn" data-value="terminal-blue">
+            <div class="option-info">
+              <span class="option-label">💻 IBM Blue Terminal</span>
+              <span class="option-desc">Nostalgia das telas azuis corporativas antigas</span>
+            </div>
+            <span class="option-check">✓</span>
+          </button>
+        </div>
+
+        <!-- CATEGORIA 4: VIBRANTES & NATUREZA -->
+        <div class="theme-category">
+          <div class="category-header">🎨 Vibrantes & Natureza</div>
+
+          <button type="button" class="modal-option-btn" data-value="synthwave">
+            <div class="option-info">
+              <span class="option-label">🌆 Synthwave 80s</span>
+              <span class="option-desc">Degradê vibrante estilo retrowave/outrun</span>
+            </div>
+            <span class="option-check">✓</span>
+          </button>
+
+          <button type="button" class="modal-option-btn" data-value="sunset">
+            <div class="option-info">
+              <span class="option-label">🌅 Pôr do Sol</span>
+              <span class="option-desc">Tons quentes de laranja e roxo crepuscular</span>
+            </div>
+            <span class="option-check">✓</span>
+          </button>
+
+          <button type="button" class="modal-option-btn" data-value="emerald">
+            <div class="option-info">
+              <span class="option-label">🌲 Floresta Esmeralda</span>
+              <span class="option-desc">Tons orgânicos de verde e terra</span>
+            </div>
+            <span class="option-check">✓</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP: BOAS-VINDAS E MOTIVAÇÃO -->
+  <div class="modal-overlay" id="modal-welcome">
+    <div class="modal-card welcome-card">
+      <div class="welcome-icon">✨</div>
+      <h3 class="welcome-title" id="welcome-greeting">Bem-vindo(a)!</h3>
+      <p class="welcome-quote" id="welcome-quote-text">"Sua única limitação é você mesmo."</p>
+      <button type="button" class="btn-primary" id="btn-start-session">Vamos Começar!</button>
+    </div>
+  </div>
+
+  <!-- POPUP: CONQUISTAS E MEDALHAS (11 DESAFIOS) -->
+  <div class="modal-overlay" id="modal-achievements">
+    <div class="modal-card modal-card-scrollable modal-card-wide">
+      <div class="modal-header">
+        <h3 class="modal-title">🏆 Conquistas Especiais</h3>
+        <button type="button" class="modal-close" data-close="modal-achievements">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="achievements-grid" id="achievements-container">
+          <!-- Renderizado via JavaScript -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
