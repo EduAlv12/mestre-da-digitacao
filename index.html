@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Mestre da Digitação</title>
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('selectedTheme') || 'default';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -12,7 +18,7 @@
 <body>
 
   <main class="app-card">
-    <header class="app-header">
+    <header class="app-header zen-target">
       <h1 class="logo-title">⌨️ Mestre da Digitação</h1>
       <div class="header-controls">
         <div class="control-group">
@@ -29,6 +35,25 @@
             <span class="trigger-icon">▾</span>
           </button>
         </div>
+        <!-- GATILHO DE SELEÇÃO DE SOM -->
+        <div class="control-group">
+          <label>Som</label>
+          <button type="button" class="select-trigger" id="sound-trigger">
+            <span id="sound-trigger-text">🔊 Thock Mecânico</span>
+            <span class="trigger-icon">▾</span>
+          </button>
+        </div>
+        <!-- MODO HARDCORE TOGGLE -->
+        <div class="control-group">
+          <label>Hardcore 🔥</label>
+          <div class="toggle-container" id="hardcore-toggle-wrapper">
+            <input type="checkbox" id="hardcore-toggle" class="toggle-checkbox">
+            <label for="hardcore-toggle" class="toggle-label">
+              <span class="toggle-inner"></span>
+              <span class="toggle-switch"></span>
+            </label>
+          </div>
+        </div>
         <div class="control-group">
           <label>Troféus</label>
           <button type="button" class="select-trigger btn-achievements-trigger" id="achievements-trigger">
@@ -38,7 +63,7 @@
       </div>
     </header>
 
-    <section class="metrics-grid">
+    <section class="metrics-grid zen-target">
       <div class="metric-card">
         <span class="metric-label">PPM</span>
         <span class="metric-value" id="ppm-val">0</span>
@@ -54,10 +79,9 @@
     </section>
 
     <!-- Quadro de Medalhas -->
-    <section class="medals-box">
+    <section class="medals-box zen-target">
       <div class="medals-title" id="medals-title">🏅 Medalhas (Modo Padrão)</div>
       
-      <!-- Medalhas do Modo Padrão -->
       <div class="medals-grid" id="standard-medals">
         <div class="medal-item" id="badge-accuracy">
           <span class="badge-counter" id="count-accuracy">0</span>
@@ -85,7 +109,6 @@
         </div>
       </div>
 
-      <!-- Medalhas Exclusivas do Modo Personalizado -->
       <div class="medals-grid hidden" id="custom-medals">
         <div class="medal-item" id="badge-custom_first">
           <span class="badge-counter" id="count-custom_first">0</span>
@@ -115,20 +138,20 @@
     </section>
 
     <section class="typing-box" id="typing-box-container">
-      <div class="difficulty-tag" id="difficulty-tag">Nível: Fácil</div>
+      <div class="typing-header-tags">
+        <div class="difficulty-tag" id="difficulty-tag">Nível: Fácil</div>
+        <div class="hardcore-tag hidden" id="hardcore-tag">🔥 HARDCORE (0/3)</div>
+      </div>
       <div class="typing-wrapper">
         <input 
           type="text" 
           id="hidden-input" 
           name="typing_test_field_no_save"
-          autocomplete="one-time-code" 
+          autocomplete="off" 
           autocorrect="off" 
           autocapitalize="off" 
           spellcheck="false" 
           inputmode="text" 
-          aria-autocomplete="none" 
-          data-gramm="false" 
-          data-enable-grammarly="false" 
         />
         <div class="text-display" id="text-display" tabindex="0"></div>
         <small class="focus-hint" id="focus-hint">Toque no quadro para abrir o teclado</small>
@@ -136,16 +159,30 @@
 
       <div id="result-message" class="result-message hidden"></div>
 
-      <div class="action-bar" id="action-bar">
+      <div class="action-bar zen-target" id="action-bar">
         <button id="restart-btn" class="btn-accent">🔄 Nova Frase</button>
         <button id="edit-custom-btn" class="btn-secondary hidden">✏️ Alterar Texto</button>
       </div>
     </section>
 
-    <footer class="app-footer">
+    <footer class="app-footer zen-target">
       Desenvolvido por Eduardo &bull; <a href="https://instagram.com/edu_xxyz" target="_blank">@edu_xxyz</a>
     </footer>
   </main>
+
+  <!-- POPUP: AVISO E ALERTA HARDCORE -->
+  <div class="modal-overlay" id="modal-hardcore-info">
+    <div class="modal-card welcome-card">
+      <div class="welcome-icon" id="hardcore-modal-icon">🔥</div>
+      <h3 class="welcome-title" id="hardcore-modal-title">Modo Hardcore Ativado!</h3>
+      <p class="welcome-quote" id="hardcore-modal-text">
+        Neste modo você <strong>NÃO poderá apagar</strong> nenhum caractere digitado.
+        <br><br>
+        Para conseguir desativar o Modo Hardcore, você precisa completar <strong>3 fases consecutivas com 100% de precisão</strong>.
+      </p>
+      <button type="button" class="btn-primary" id="btn-hardcore-modal-close">Entendido!</button>
+    </div>
+  </div>
 
   <!-- POPUP: DIFICULDADE / MODO -->
   <div class="modal-overlay" id="modal-difficulty">
@@ -187,6 +224,54 @@
     </div>
   </div>
 
+  <!-- POPUP: CONFIGURAÇÕES DE SOM -->
+  <div class="modal-overlay" id="modal-sound">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Configurações de Som</h3>
+        <button type="button" class="modal-close" data-close="modal-sound">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="volume-control-group" style="margin-bottom: 1.25rem;">
+          <label for="volume-slider" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Volume Mestre</label>
+          <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.7" style="width: 100%;">
+        </div>
+
+        <div class="category-header" style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.75rem;">Perfil Sonoro</div>
+        <button type="button" class="modal-option-btn" data-value="thock">
+          <div class="option-info">
+            <span class="option-label">🎹 Thock Mecânico</span>
+          </div>
+          <span class="option-check">✓</span>
+        </button>
+        <button type="button" class="modal-option-btn" data-value="pop">
+          <div class="option-info">
+            <span class="option-label">🫧 Pop Suave</span>
+          </div>
+          <span class="option-check">✓</span>
+        </button>
+        <button type="button" class="modal-option-btn" data-value="retro">
+          <div class="option-info">
+            <span class="option-label">🕹️ Retrô Cyber 80s</span>
+          </div>
+          <span class="option-check">✓</span>
+        </button>
+        <button type="button" class="modal-option-btn" data-value="typewriter">
+          <div class="option-info">
+            <span class="option-label">📜 Máquina de Escrever</span>
+          </div>
+          <span class="option-check">✓</span>
+        </button>
+        <button type="button" class="modal-option-btn" data-value="silent">
+          <div class="option-info">
+            <span class="option-label">🔇 Silencioso / Muto</span>
+          </div>
+          <span class="option-check">✓</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- POPUP: TEXTO PERSONALIZADO -->
   <div class="modal-overlay" id="modal-custom-text">
     <div class="modal-card">
@@ -202,7 +287,7 @@
     </div>
   </div>
   
-  <!-- POPUP: TEMA COM 15 OPÇÕES CATEGORIZADAS -->
+  <!-- POPUP: TEMAS VISUAIS -->
   <div class="modal-overlay" id="modal-theme">
     <div class="modal-card modal-card-scrollable">
       <div class="modal-header">
@@ -210,152 +295,86 @@
         <button type="button" class="modal-close" data-close="modal-theme">&times;</button>
       </div>
       <div class="modal-body">
-
-        <!-- CATEGORIA 1: ESCUROS -->
         <div class="theme-category">
           <div class="category-header">🌙 Modos Escuros</div>
-          
           <button type="button" class="modal-option-btn" data-value="default">
-            <div class="option-info">
-              <span class="option-label">🌊 Azul Marinho</span>
-              <span class="option-desc">Elegância clássica em tons de azul escuro</span>
-            </div>
+            <div class="option-info"><span class="option-label">🌊 Azul Marinho</span><span class="option-desc">Elegância clássica</span></div>
             <span class="option-check">✓</span>
           </button>
-
           <button type="button" class="modal-option-btn" data-value="dracula">
-            <div class="option-info">
-              <span class="option-label">🔮 Dracula Cyber</span>
-              <span class="option-desc">Neon e contraste para desenvolvedores</span>
-            </div>
+            <div class="option-info"><span class="option-label">🔮 Dracula Cyber</span><span class="option-desc">Neon para devs</span></div>
             <span class="option-check">✓</span>
           </button>
-
           <button type="button" class="modal-option-btn" data-value="midnight">
-            <div class="option-info">
-              <span class="option-label">🌌 Meia-Noite Roxo</span>
-              <span class="option-desc">Tons profundos de roxo e violeta</span>
-            </div>
+            <div class="option-info"><span class="option-label">🌌 Meia-Noite Roxo</span><span class="option-desc">Tons profundos</span></div>
             <span class="option-check">✓</span>
           </button>
-
           <button type="button" class="modal-option-btn" data-value="charcoal">
-            <div class="option-info">
-              <span class="option-label">🖤 Carvão Minimalista</span>
-              <span class="option-desc">Cinza escuro focado e sem distrações</span>
-            </div>
+            <div class="option-info"><span class="option-label">🖤 Carvão Minimalista</span><span class="option-desc">Focado e limpo</span></div>
             <span class="option-check">✓</span>
           </button>
-
           <button type="button" class="modal-option-btn" data-value="nordic-dark">
-            <div class="option-info">
-              <span class="option-label">❄️ Nórdico Escuro</span>
-              <span class="option-desc">Cores gélidas e sóbrias inspiradas no ártico</span>
-            </div>
+            <div class="option-info"><span class="option-label">❄️ Nórdico Escuro</span><span class="option-desc">Cores sóbrias</span></div>
             <span class="option-check">✓</span>
           </button>
         </div>
 
-        <!-- CATEGORIA 2: CLAROS -->
         <div class="theme-category">
           <div class="category-header">☀️ Modos Claros</div>
-
           <button type="button" class="modal-option-btn" data-value="light">
-            <div class="option-info">
-              <span class="option-label">🥛 Claro Clean</span>
-              <span class="option-desc">Interface limpa e minimalista</span>
-            </div>
+            <div class="option-info"><span class="option-label">🥛 Claro Clean</span><span class="option-desc">Interface limpa</span></div>
             <span class="option-check">✓</span>
           </button>
-
           <button type="button" class="modal-option-btn" data-value="paper">
-            <div class="option-info">
-              <span class="option-label">📜 Papel Sépia</span>
-              <span class="option-desc">Estilo livro clássico, confortável aos olhos</span>
-            </div>
+            <div class="option-info"><span class="option-label">📜 Papel Sépia</span><span class="option-desc">Estilo livro clássico</span></div>
             <span class="option-check">✓</span>
           </button>
-
           <button type="button" class="modal-option-btn" data-value="pastel">
-            <div class="option-info">
-              <span class="option-label">🌸 Soft Pastel</span>
-              <span class="option-desc">Tons suaves em rosa e azul pastel</span>
-            </div>
+            <div class="option-info"><span class="option-label">🌸 Soft Pastel</span><span class="option-desc">Tons suaves</span></div>
             <span class="option-check">✓</span>
           </button>
-
           <button type="button" class="modal-option-btn" data-value="nordic-light">
-            <div class="option-info">
-              <span class="option-label">🏔️ Nórdico Claro</span>
-              <span class="option-desc">Estética fria e neutra com foco em leitura</span>
-            </div>
+            <div class="option-info"><span class="option-label">🏔️ Nórdico Claro</span><span class="option-desc">Estética fria</span></div>
             <span class="option-check">✓</span>
           </button>
         </div>
 
-        <!-- CATEGORIA 3: RETRÔ & NOSTALGIA -->
         <div class="theme-category">
           <div class="category-header">📻 Retrô & Terminal</div>
-
           <button type="button" class="modal-option-btn" data-value="amber">
-            <div class="option-info">
-              <span class="option-label">📻 Amber Retrô</span>
-              <span class="option-desc">Fósforo âmbar dos monitores dos anos 80</span>
-            </div>
+            <div class="option-info"><span class="option-label">📻 Amber Retrô</span><span class="option-desc">Fósforo âmbar dos anos 80</span></div>
             <span class="option-check">✓</span>
           </button>
-
           <button type="button" class="modal-option-btn" data-value="matrix">
-            <div class="option-info">
-              <span class="option-label">📟 Matrix Terminal</span>
-              <span class="option-desc">Verde hacker em fundo preto absoluto</span>
-            </div>
+            <div class="option-info"><span class="option-label">📟 Matrix Terminal</span><span class="option-desc">Verde hacker</span></div>
             <span class="option-check">✓</span>
           </button>
-
           <button type="button" class="modal-option-btn" data-value="terminal-blue">
-            <div class="option-info">
-              <span class="option-label">💻 IBM Blue Terminal</span>
-              <span class="option-desc">Nostalgia das telas azuis corporativas antigas</span>
-            </div>
+            <div class="option-info"><span class="option-label">💻 IBM Blue Terminal</span><span class="option-desc">Telas azuis corporativas</span></div>
             <span class="option-check">✓</span>
           </button>
         </div>
 
-        <!-- CATEGORIA 4: VIBRANTES & NATUREZA -->
         <div class="theme-category">
           <div class="category-header">🎨 Vibrantes & Natureza</div>
-
           <button type="button" class="modal-option-btn" data-value="synthwave">
-            <div class="option-info">
-              <span class="option-label">🌆 Synthwave 80s</span>
-              <span class="option-desc">Degradê vibrante estilo retrowave/outrun</span>
-            </div>
+            <div class="option-info"><span class="option-label">🌆 Synthwave 80s</span><span class="option-desc">Degradê vibrante</span></div>
             <span class="option-check">✓</span>
           </button>
-
           <button type="button" class="modal-option-btn" data-value="sunset">
-            <div class="option-info">
-              <span class="option-label">🌅 Pôr do Sol</span>
-              <span class="option-desc">Tons quentes de laranja e roxo crepuscular</span>
-            </div>
+            <div class="option-info"><span class="option-label">🌅 Pôr do Sol</span><span class="option-desc">Tons quentes</span></div>
             <span class="option-check">✓</span>
           </button>
-
           <button type="button" class="modal-option-btn" data-value="emerald">
-            <div class="option-info">
-              <span class="option-label">🌲 Floresta Esmeralda</span>
-              <span class="option-desc">Tons orgânicos de verde e terra</span>
-            </div>
+            <div class="option-info"><span class="option-label">🌲 Floresta Esmeralda</span><span class="option-desc">Tons orgânicos</span></div>
             <span class="option-check">✓</span>
           </button>
         </div>
-
       </div>
     </div>
   </div>
 
-  <!-- POPUP: BOAS-VINDAS E MOTIVAÇÃO -->
+  <!-- POPUP: BOAS-VINDAS -->
   <div class="modal-overlay" id="modal-welcome">
     <div class="modal-card welcome-card">
       <div class="welcome-icon">✨</div>
@@ -365,7 +384,7 @@
     </div>
   </div>
 
-  <!-- POPUP: CONQUISTAS E MEDALHAS (11 DESAFIOS) -->
+  <!-- POPUP: CONQUISTAS -->
   <div class="modal-overlay" id="modal-achievements">
     <div class="modal-card modal-card-scrollable modal-card-wide">
       <div class="modal-header">
@@ -373,9 +392,7 @@
         <button type="button" class="modal-close" data-close="modal-achievements">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="achievements-grid" id="achievements-container">
-          <!-- Renderizado via JavaScript -->
-        </div>
+        <div class="achievements-grid" id="achievements-container"></div>
       </div>
     </div>
   </div>

@@ -1,27 +1,69 @@
 const sentences = {
   easy: [
-    "O sol nasce para todos todas as manhãs.",
-    "Café fresquinho logo cedo renova as energias.",
-    "Um sorriso sincero transforma o dia de alguém.",
-    "Caminhar na praia ao pôr do sol acalma a alma.",
-    "A vida é feita de pequenos momentos especiais.",
-    "Ler um bom livro é viajar sem sair do lugar.",
-    "Flores coloridas perfumam o jardim da casa.",
-    "A música suave embala os pensamentos da tarde.",
-    "Comer uma fruta bem docinha é maravilhoso.",
-    "A chuva fina caindo no telhado traz paz."
+    "O sol ilumina a manhã tranquila.",
+    "Um café quente renova as energias.",
+    "As folhas secas caem no outono.",
+    "Caminhar na praia acalma a mente.",
+    "O aroma do pão fresco é delicioso.",
+    "Passarinhos cantam na janela do quarto.",
+    "A lua cheia brilha no céu estrelado.",
+    "Plantar flores traz cor ao jardim.",
+    "A água da fonte é bem fresca.",
+    "O vento suave balança as árvores.",
+    "Ler um bom livro diverte bastante.",
+    "A chuva fina molha a calçada.",
+    "Comer frutas faz bem à saúde.",
+    "Um sorriso sincero muda o dia.",
+    "Gatos adoram dormir ao sol da tarde.",
+    "A montanha alta desafia os aventureiros.",
+    "Pintar um quadro desperta a imaginação.",
+    "Cães correm felizes pelo parque verde.",
+    "O bolo de fubá assa no forno.",
+    "A noite traz paz e descanso merecido."
   ],
   medium: [
-    "As estações do ano mudam as cores da paisagem e trazem novas perspectivas para a vida.",
-    "Cozinhar para quem amamos é uma das formas mais bonitas de demonstrar afeto e carinho.",
-    "Viajar para lugares desconhecidos nos ensina sobre novas culturas e amplia nossos horizontes.",
-    "O respeito às diferenças é o pilar fundamental para a construção de uma sociedade justa.",
-    "Cuidar de plantas requer paciência e dedicação diária para vê-las florescer no tempo certo."
+    "Enquanto as ondas quebram na areia, o farol ilumina o caminho dos navegantes.",
+    "Preparar uma receita antiga traz memórias afetuosas e aromas inesquecíveis para a cozinha.",
+    "As estações do ano transformam a paisagem com cores, aromas e sensações totalmente diferentes.",
+    "Na calma da biblioteca, o som das páginas viradas acompanha a busca pelo conhecimento.",
+    "O jardineiro cuida das rosas com paciência, sabendo que cada flor exige seu próprio tempo.",
+    "Viajar para lugares desconhecidos abre novos horizontes e enriquece a nossa bagagem cultural.",
+    "A orquestra começou a tocar suavemente, encantando a plateia com uma melodia inesquecível.",
+    "Observar o pôr do sol no horizonte é um lembrete diário da beleza simples da vida.",
+    "Pequenos hábitos diários de gentileza têm o poder de transformar relacionamentos e ambientes.",
+    "O aroma de terra molhada após a tempestade traz uma sensação única de renovação.",
+    "Aprender a tocar um instrumento exige dedicação diária, foco e muita paixão pela música.",
+    "No topo da colina, a vista panorâmica da cidade ao amanhecer revela um espetáculo grandioso.",
+    "A arte de cozinhar envolve combinar temperos simples para criar sabores surpreendentes.",
+    "Reler um clássico da literatura nos permite descobrir detalhes que antes passaram despercebidos.",
+    "O canto dos pássaros ao alvorecer anuncia a chegada de mais uma oportunidade para recomeçar.",
+    "Caminhar por trilhas florestais nos reconecta com a natureza e purifica os pensamentos.",
+    "O pintor mistura cores primárias na paleta até encontrar o tom exato para sua obra.",
+    "Guardar boas recordações em fotografias ajuda a preservar momentos especiais com quem amamos.",
+    "Uma xícara de chá bem quente é o acompanhamento perfeito para uma tarde fria de chuva.",
+    "A determinação dos atletas na maratona inspira todos aqueles que assistem à competição."
   ],
   hard: [
-    "A diversidade cultural da humanidade reflete-se na vasta riqueza de tradições, idiomas, mitos e manifestações artísticas ao redor do mundo.",
-    "Navegar pelos mares da literatura clássica nos proporciona um encontro transformador com grandes pensadores de épocas distantes.",
-    "O constante equilíbrio entre a preservação dos ecossistemas naturais e o progresso humano é um dos maiores desafios do século presente."
+    "Entre os vales sinuosos e as montanhas cobertas de névoa, a antiga civilização deixou vestígios arquitetônicos surpreendentes.",
+    "A gastronomia artesanal combina tradições seculares com técnicas modernas, valorizando ingredientes orgânicos cultivados por pequenos produtores.",
+    "O silêncio sepulcral das galerias de arte permite aos visitantes contemplar as nuances das pinceladas e a melancolia das telas.",
+    "Navegar por mares agitados exige coragem inabalável, conhecimento profundo das marés e um respeito absoluto pelas forças da natureza.",
+    "A preservação dos ecossistemas florestais garante o equilíbrio climático global, protegendo espécies raras e mantendo a biodiversidade.",
+    "Durante o rigoroso inverno nórdico, o espetáculo luminoso da aurora boreal tinge o céu noturno com tons vibrantes de verde e violeta.",
+    "A literatura clássica atravessa séculos sem perder sua relevância, pois retrata as paixões, dilemas morais e contradições humanas.",
+    "Arquitetos renomados buscam harmonizar o design urbano com espaços verdes, promovendo a sustentabilidade e o bem-estar coletivo.",
+    "O artesão dedica horas esculpindo a madeira bruta com ferramentas manuais, transformando um tronco inerte em uma escultura viva.",
+    "Enquanto a chuva torrencial batia contra as vidraças do casarão, a família se reunia ao redor da lareira para ouvir histórias antigas.",
+    "A complexidade do ecossistema marinho revela um mundo fascinante de corais coloridos, peixes exóticos e criaturas misteriosas.",
+    "Cultivar a paciência e a resiliência nos momentos adversos permite-nos superar obstáculos aparentemente intransponíveis com serenidade.",
+    "O festival de música atrai multidões entusiasmadas, celebrando a diversidade cultural por meio de ritmos vibrantes e performances ao ar livre.",
+    "As expedições botânicas do século dezenove catalogaram milhares de plantas medicinais, contribuindo para o avanço do conhecimento científico.",
+    "Caminhar pelas vielas de pedras de uma cidade histórica é como viajar no tempo, vislumbrando séculos de arte e tradição preservadas.",
+    "O sabor encorpado de um bom vinho envelhecido em barris de carvalho reflete o clima do vinhedo e a dedicação do enólogo.",
+    "Decifrar os mistérios do universo demanda observação meticulosa das estrelas, cálculos rigorosos e um desejo incessante de exploração.",
+    "A sinfonia composta no período romântico alterna momentos de intensa dramaticidade com passagens suaves de pura delicadeza poética.",
+    "A prática regular de meditação e exercícios de respiração reduz o estresse, promovendo o equilíbrio emocional e a clareza mental.",
+    "Nos mercados tradicionais do oriente, o aroma penetrante de especiarias raras mescla-se ao colorido das tecelagens manuais e ao burburinho local."
   ]
 };
 
@@ -32,15 +74,47 @@ const difficultyThresholds = {
 };
 
 const difficultyNames = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil', custom: 'Personalizado' };
-const themeNames = { default: 'Azul Marinho', light: 'Claro Clean', dracula: 'Dracula Cyber', amber: 'Amber Retrô' };
+
+const themeNames = { 
+  default: 'Azul Marinho', 
+  dracula: 'Dracula Cyber', 
+  midnight: 'Meia-Noite Roxo', 
+  charcoal: 'Carvão Minimalista', 
+  'nordic-dark': 'Nórdico Escuro', 
+  light: 'Claro Clean', 
+  paper: 'Papel Sépia', 
+  pastel: 'Soft Pastel', 
+  'nordic-light': 'Nórdico Claro', 
+  amber: 'Amber Retrô', 
+  matrix: 'Matrix Terminal', 
+  'terminal-blue': 'IBM Blue Terminal', 
+  synthwave: 'Synthwave 80s', 
+  sunset: 'Pôr do Sol', 
+  emerald: 'Floresta Esmeralda' 
+};
+
+const soundProfileNames = {
+  thock: 'Thock Mecânico',
+  pop: 'Pop Suave',
+  retro: 'Retrô Cyber 80s',
+  typewriter: 'Máquina de Escrever',
+  silent: 'Silencioso / Muto'
+};
 
 let currentDifficulty = 'easy';
 let currentTheme = 'default';
 let customUserText = localStorage.getItem('customUserText') || "";
 
+// ESTADO DO MODO HARDCORE
+let isHardcore = JSON.parse(localStorage.getItem('mestre_hardcore_mode') || 'false');
+let hardcoreConsecutivePerfect = parseInt(localStorage.getItem('mestre_hardcore_streak') || '0', 10);
+
 const difficultyTriggerText = document.getElementById('difficulty-trigger-text');
 const themeTriggerText = document.getElementById('theme-trigger-text');
+const soundTriggerText = document.getElementById('sound-trigger-text');
 const difficultyTag = document.getElementById('difficulty-tag');
+const hardcoreTag = document.getElementById('hardcore-tag');
+const hardcoreToggle = document.getElementById('hardcore-toggle');
 const textDisplay = document.getElementById('text-display');
 const hiddenInput = document.getElementById('hidden-input');
 const ppmVal = document.getElementById('ppm-val');
@@ -53,8 +127,10 @@ const medalsTitle = document.getElementById('medals-title');
 
 const modalDifficulty = document.getElementById('modal-difficulty');
 const modalTheme = document.getElementById('modal-theme');
+const modalSound = document.getElementById('modal-sound');
 const modalCustomText = document.getElementById('modal-custom-text');
 const modalAchievements = document.getElementById('modal-achievements');
+const modalHardcoreInfo = document.getElementById('modal-hardcore-info');
 
 const customTextInput = document.getElementById('custom-text-input');
 const customTextError = document.getElementById('custom-text-error');
@@ -62,7 +138,9 @@ const saveCustomTextBtn = document.getElementById('save-custom-text-btn');
 
 const difficultyTrigger = document.getElementById('difficulty-trigger');
 const themeTrigger = document.getElementById('theme-trigger');
-const achievementsTrigger = document.getElementById('achievements-trigger') || document.getElementById('btn-open-achievements');
+const soundTrigger = document.getElementById('sound-trigger');
+const achievementsTrigger = document.getElementById('achievements-trigger');
+const volumeSlider = document.getElementById('volume-slider');
 
 const standardMedalKeys = ['accuracy', 'time15', 'time30', 'speed60'];
 const customMedalKeys = ['custom_first', 'custom_long', 'custom_speed', 'custom_perfect'];
@@ -75,25 +153,326 @@ let errors = 0;
 let startTime = null;
 let previousInputValue = "";
 
-function getDifficulty() {
-  return currentDifficulty;
+// ==========================================================================
+// AUDIO ENGINE (COM PERFIS DE TOM, VOLUME E MONOFONIA)
+// ==========================================================================
+class AudioEngine {
+  constructor() {
+    this.ctx = null;
+    this.enabled = true;
+    this.profile = 'thock';
+    this.volume = 0.7;
+    this.compressor = null;
+    this.masterGain = null;
+    this.currentOsc = null;
+    this.currentGain = null;
+  }
+
+  init() {
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+      this.compressor = this.ctx.createDynamicsCompressor();
+      this.compressor.threshold.setValueAtTime(-12, this.ctx.currentTime);
+      this.compressor.knee.setValueAtTime(15, this.ctx.currentTime);
+      this.compressor.ratio.setValueAtTime(10, this.ctx.currentTime);
+      this.compressor.attack.setValueAtTime(0.001, this.ctx.currentTime);
+      this.compressor.release.setValueAtTime(0.04, this.ctx.currentTime);
+
+      this.masterGain = this.ctx.createGain();
+      this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
+
+      this.compressor.connect(this.masterGain);
+      this.masterGain.connect(this.ctx.destination);
+    }
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  }
+
+  setVolume(val) {
+    this.volume = parseFloat(val);
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
+    }
+  }
+
+  setProfile(profile) {
+    this.profile = profile;
+  }
+
+  stopCurrentSound(now) {
+    if (this.currentGain && this.currentOsc) {
+      try {
+        this.currentGain.gain.cancelScheduledValues(now);
+        this.currentGain.gain.setValueAtTime(this.currentGain.gain.value, now);
+        this.currentGain.gain.linearRampToValueAtTime(0.0001, now + 0.003);
+        this.currentOsc.stop(now + 0.004);
+      } catch (e) {
+        // Ignora caso a nota já tenha finalizado
+      }
+    }
+  }
+
+  playKey(isSpecial = false) {
+    if (!this.enabled || this.profile === 'silent') return;
+    this.init();
+
+    const now = this.ctx.currentTime;
+    this.stopCurrentSound(now);
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    this.currentOsc = osc;
+    this.currentGain = gain;
+
+    osc.connect(gain);
+    gain.connect(this.compressor);
+
+    const detune = (Math.random() - 0.5) * 35;
+    let baseFreq = 600;
+    let endFreq = 150;
+    let duration = 0.025;
+    let waveType = 'triangle';
+    let baseGain = 0.12;
+
+    switch (this.profile) {
+      case 'thock':
+        waveType = 'triangle';
+        baseFreq = isSpecial ? 220 : 380;
+        endFreq = isSpecial ? 80 : 120;
+        duration = 0.035;
+        baseGain = 0.18;
+        break;
+
+      case 'pop':
+        waveType = 'sine';
+        baseFreq = isSpecial ? 450 : 750;
+        endFreq = isSpecial ? 200 : 300;
+        duration = 0.022;
+        baseGain = 0.14;
+        break;
+
+      case 'retro':
+        waveType = 'sawtooth';
+        baseFreq = isSpecial ? 350 : 900;
+        endFreq = isSpecial ? 150 : 400;
+        duration = 0.02;
+        baseGain = 0.08;
+        break;
+
+      case 'typewriter':
+        waveType = 'square';
+        baseFreq = isSpecial ? 300 : 1200;
+        endFreq = isSpecial ? 100 : 250;
+        duration = 0.018;
+        baseGain = 0.09;
+        break;
+    }
+
+    osc.type = waveType;
+    osc.frequency.setValueAtTime(baseFreq + detune, now);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(40, endFreq), now + duration);
+
+    gain.gain.setValueAtTime(baseGain, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    osc.start(now);
+    osc.stop(now + duration);
+  }
+
+  playThemeSwitch() {
+    if (!this.enabled || this.profile === 'silent') return;
+    this.init();
+
+    const now = this.ctx.currentTime;
+    this.stopCurrentSound(now);
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'sine';
+    osc.connect(gain);
+    gain.connect(this.compressor);
+
+    osc.frequency.setValueAtTime(300, now);
+    osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+
+    osc.start(now);
+    osc.stop(now + 0.08);
+  }
 }
 
-function getStorageKey() {
-  return `typingMedalCounts_${getDifficulty()}`;
+const audioEngine = new AudioEngine();
+
+function setSoundProfile(val) {
+  audioEngine.setProfile(val);
+  localStorage.setItem('selectedSoundProfile', val);
+
+  if (soundTriggerText) {
+    soundTriggerText.textContent = soundProfileNames[val] || 'Thock Mecânico';
+  }
+
+  if (modalSound) {
+    modalSound.querySelectorAll('.modal-option-btn').forEach(b => {
+      b.classList.toggle('selected', b.getAttribute('data-value') === val);
+    });
+  }
+
+  audioEngine.playKey(false);
 }
 
-function openModal(modal) {
-  if (modal) modal.classList.add('active');
+function loadSavedAudioSettings() {
+  const savedProfile = localStorage.getItem('selectedSoundProfile') || 'thock';
+  const savedVolume = localStorage.getItem('selectedSoundVolume') || '0.7';
+
+  setSoundProfile(savedProfile);
+  audioEngine.setVolume(savedVolume);
+
+  if (volumeSlider) {
+    volumeSlider.value = savedVolume;
+  }
 }
 
-function closeModal(modal) {
-  if (modal) modal.classList.remove('active');
+if (volumeSlider) {
+  volumeSlider.addEventListener('input', (e) => {
+    const val = e.target.value;
+    audioEngine.setVolume(val);
+    localStorage.setItem('selectedSoundVolume', val);
+  });
 }
 
-// Configuração dos Modais
+// ==========================================================================
+// CONTROLE DO MODO HARDCORE
+// ==========================================================================
+function updateHardcoreUI() {
+  if (hardcoreToggle) {
+    hardcoreToggle.checked = isHardcore;
+  }
+  if (hardcoreTag) {
+    if (isHardcore) {
+      hardcoreTag.textContent = `🔥 HARDCORE (${hardcoreConsecutivePerfect}/3)`;
+      hardcoreTag.classList.remove('hidden');
+    } else {
+      hardcoreTag.classList.add('hidden');
+    }
+  }
+}
+
+function showHardcoreModal(title, text, icon = '🔥') {
+  const modalTitle = document.getElementById('hardcore-modal-title');
+  const modalText = document.getElementById('hardcore-modal-text');
+  const modalIcon = document.getElementById('hardcore-modal-icon');
+  const closeBtn = document.getElementById('btn-hardcore-modal-close');
+
+  if (modalTitle) modalTitle.textContent = title;
+  if (modalText) modalText.innerHTML = text;
+  if (modalIcon) modalIcon.textContent = icon;
+
+  openModal(modalHardcoreInfo);
+
+  if (closeBtn) {
+    closeBtn.onclick = () => {
+      closeModal(modalHardcoreInfo);
+      focusInput();
+    };
+  }
+}
+
+if (hardcoreToggle) {
+  hardcoreToggle.addEventListener('change', (e) => {
+    const wantsHardcore = e.target.checked;
+
+    if (wantsHardcore) {
+      isHardcore = true;
+      hardcoreConsecutivePerfect = 0;
+      localStorage.setItem('mestre_hardcore_mode', 'true');
+      localStorage.setItem('mestre_hardcore_streak', '0');
+      updateHardcoreUI();
+
+      showHardcoreModal(
+        "🔥 Modo Hardcore Ativado!",
+        "Neste modo você <strong>NÃO poderá apagar</strong> nada do que digitar.<br><br>Atenção: Você só poderá desativar este modo após completar <strong>3 fases consecutivas com 100% de precisão</strong>!",
+        "🔥"
+      );
+      initTest();
+    } else {
+      // Tentar desativar o modo Hardcore
+      if (hardcoreConsecutivePerfect >= 3) {
+        isHardcore = false;
+        hardcoreConsecutivePerfect = 0;
+        localStorage.setItem('mestre_hardcore_mode', 'false');
+        localStorage.setItem('mestre_hardcore_streak', '0');
+        updateHardcoreUI();
+
+        showHardcoreModal(
+          "🔓 Modo Hardcore Desativado!",
+          "Parabéns! Você provou sua precisão e desbloqueou a alternância para o modo normal. A tecla de apagar está disponível novamente.",
+          "🎉"
+        );
+        initTest();
+      } else {
+        // Bloquear a desativação
+        hardcoreToggle.checked = true;
+        showHardcoreModal(
+          "🔒 Modo Hardcore Bloqueado!",
+          `Você ainda não completou as 3 fases seguidas com 100% de precisão para poder desativar este modo.<br><br>Progresso atual: <strong>${hardcoreConsecutivePerfect}/3 fases completas</strong> com 100% de precisão.`,
+          "🔒"
+        );
+      }
+    }
+  });
+}
+
+// ==========================================================================
+// MODO ZEN & ÁUDIO
+// ==========================================================================
+let zenTimeout = null;
+const INACTIVITY_DELAY = 2000;
+
+function initZenAndAudioControls() {
+  window.addEventListener('keydown', (e) => {
+    if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Escape'].includes(e.key)) return;
+
+    const isSpecialKey = ['Backspace', 'Enter', 'Space'].includes(e.code);
+    audioEngine.playKey(isSpecialKey);
+
+    document.body.classList.remove('zen-active');
+    clearTimeout(zenTimeout);
+
+    if (document.activeElement === hiddenInput || document.activeElement === textDisplay) {
+      zenTimeout = setTimeout(() => {
+        document.body.classList.add('zen-active');
+      }, INACTIVITY_DELAY);
+    }
+  });
+
+  window.addEventListener('mousemove', () => {
+    if (document.body.classList.contains('zen-active')) {
+      document.body.classList.remove('zen-active');
+    }
+    clearTimeout(zenTimeout);
+  });
+
+  window.addEventListener('click', () => audioEngine.init(), { once: true });
+}
+
+// ==========================================================================
+// GERENCIAMENTO DE MODAIS E NAVEGAÇÃO
+// ==========================================================================
+function getDifficulty() { return currentDifficulty; }
+function getStorageKey() { return `typingMedalCounts_${getDifficulty()}`; }
+
+function openModal(modal) { if (modal) modal.classList.add('active'); }
+function closeModal(modal) { if (modal) modal.classList.remove('active'); }
+
 if (difficultyTrigger) difficultyTrigger.addEventListener('click', () => openModal(modalDifficulty));
 if (themeTrigger) themeTrigger.addEventListener('click', () => openModal(modalTheme));
+if (soundTrigger) soundTrigger.addEventListener('click', () => openModal(modalSound));
 if (achievementsTrigger) {
   achievementsTrigger.addEventListener('click', () => {
     renderAchievements();
@@ -108,7 +487,7 @@ document.querySelectorAll('.modal-close').forEach(btn => {
   });
 });
 
-[modalDifficulty, modalTheme, modalCustomText, modalAchievements].forEach(modal => {
+[modalDifficulty, modalTheme, modalSound, modalCustomText, modalAchievements, modalHardcoreInfo].forEach(modal => {
   if (modal) {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) closeModal(modal);
@@ -120,18 +499,29 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeModal(modalDifficulty);
     closeModal(modalTheme);
+    closeModal(modalSound);
     closeModal(modalCustomText);
     closeModal(modalAchievements);
+    closeModal(modalHardcoreInfo);
   }
 });
 
-// Seleção de Dificuldade / Modo
 if (modalDifficulty) {
   modalDifficulty.querySelectorAll('.modal-option-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const val = btn.getAttribute('data-value');
       setDifficulty(val);
       closeModal(modalDifficulty);
+    });
+  });
+}
+
+if (modalSound) {
+  modalSound.querySelectorAll('.modal-option-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.getAttribute('data-value');
+      setSoundProfile(val);
+      closeModal(modalSound);
     });
   });
 }
@@ -185,7 +575,6 @@ if (saveCustomTextBtn) {
       if (customTextError) customTextError.classList.remove('hidden');
       return;
     }
-    
     customUserText = textVal;
     localStorage.setItem('customUserText', customUserText);
     closeModal(modalCustomText);
@@ -195,7 +584,6 @@ if (saveCustomTextBtn) {
 
 if (editCustomBtn) editCustomBtn.addEventListener('click', openCustomTextModal);
 
-// Seleção de Tema
 if (modalTheme) {
   modalTheme.querySelectorAll('.modal-option-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -208,8 +596,12 @@ if (modalTheme) {
 
 function setTheme(val) {
   currentTheme = val;
+  audioEngine.playThemeSwitch();
+
+  document.documentElement.classList.add('no-transitions');
   document.documentElement.setAttribute('data-theme', val);
   localStorage.setItem('selectedTheme', val);
+
   if (themeTriggerText) themeTriggerText.textContent = themeNames[val] || 'Azul Marinho';
 
   if (modalTheme) {
@@ -218,8 +610,13 @@ function setTheme(val) {
     });
   }
 
-  // Registra troca de tema para conquista
   trackThemeChange(val);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.documentElement.classList.remove('no-transitions');
+    });
+  });
 }
 
 function loadSavedTheme() {
@@ -283,6 +680,9 @@ function focusInput() {
   }
 }
 
+// ==========================================================================
+// LÓGICA DO TESTE DE DIGITAÇÃO
+// ==========================================================================
 function initTest() {
   clearInterval(timerInterval);
   isRunning = false;
@@ -326,6 +726,7 @@ function initTest() {
       .join('');
   }
 
+  updateHardcoreUI();
   focusInput();
 }
 
@@ -352,10 +753,10 @@ function calculateMetrics(seconds) {
   return 0;
 }
 
-// Bloqueia teclas de exclusão e registra pressionamento de Espaço
 if (hiddenInput) {
   hiddenInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Backspace' || e.key === 'Delete') {
+    // BLOQUEIA APAGAR APENAS SE ESTIVER NO MODO HARDCORE
+    if (isHardcore && (e.key === 'Backspace' || e.key === 'Delete')) {
       e.preventDefault();
     }
     if (e.key === ' ') {
@@ -373,7 +774,6 @@ if (hiddenInput) {
       e.preventDefault();
       return;
     }
-    
     if (e.data && e.data.length > 1) {
       e.preventDefault();
     }
@@ -385,14 +785,17 @@ if (hiddenInput) {
 }
 
 function handleTyping() {
-  if (hiddenInput.value.length < previousInputValue.length) {
+  // SE ESTIVER NO MODO HARDCORE, BLOQUEIA REDUÇÃO DO TAMANHO DA STRING
+  if (isHardcore && hiddenInput.value.length < previousInputValue.length) {
     hiddenInput.value = previousInputValue;
     return;
   }
 
-  const lengthDiff = hiddenInput.value.length - previousInputValue.length;
-  if (lengthDiff > 1) {
-    hiddenInput.value = previousInputValue + hiddenInput.value.slice(previousInputValue.length, previousInputValue.length + 1);
+  if (isHardcore) {
+    const lengthDiff = hiddenInput.value.length - previousInputValue.length;
+    if (lengthDiff > 1) {
+      hiddenInput.value = previousInputValue + hiddenInput.value.slice(previousInputValue.length, previousInputValue.length + 1);
+    }
   }
 
   previousInputValue = hiddenInput.value;
@@ -450,7 +853,25 @@ function endTest(finalAccuracy) {
   const finalWpm = calculateMetrics(finalTimeInSeconds);
   const diff = getDifficulty();
 
-  // Processa as 11 conquistas com o resultado da frase
+  // ATUALIZAR PROGRESSO HARDCORE
+  let hardcoreStatusMsg = "";
+  if (isHardcore) {
+    if (finalAccuracy === 100) {
+      hardcoreConsecutivePerfect += 1;
+      localStorage.setItem('mestre_hardcore_streak', hardcoreConsecutivePerfect.toString());
+      if (hardcoreConsecutivePerfect >= 3) {
+        hardcoreStatusMsg = `<br>🔓 <strong>Sua sequência Hardcore é de ${hardcoreConsecutivePerfect}/3!</strong> Você desbloqueou a opção de desativar o modo Hardcore!`;
+      } else {
+        hardcoreStatusMsg = `<br>🔥 <strong>Sequência Hardcore: ${hardcoreConsecutivePerfect}/3 fases perfeitas!</strong> Mantenha o foco!`;
+      }
+    } else {
+      hardcoreConsecutivePerfect = 0;
+      localStorage.setItem('mestre_hardcore_streak', '0');
+      hardcoreStatusMsg = `<br>💔 <strong>Sua sequência Hardcore foi zerada por conta dos erros!</strong> Complete 3 seguidas com 100% de precisão para poder desativar.`;
+    }
+    updateHardcoreUI();
+  }
+
   checkRoundAchievements(finalWpm, finalAccuracy, currentTheme);
 
   if (diff === 'custom') {
@@ -462,13 +883,13 @@ function endTest(finalAccuracy) {
 
       if (resultMessage) {
         resultMessage.className = 'result-message success';
-        resultMessage.innerHTML = `🎉 <strong>Parabéns!</strong> Você concluiu seu texto personalizado em ${finalTimeInSeconds}s (${finalAccuracy}% de precisão). Medalhas desbloqueadas!`;
+        resultMessage.innerHTML = `🎉 <strong>Parabéns!</strong> Você concluiu seu texto personalizado em ${finalTimeInSeconds}s (${finalAccuracy}% de precisão). Medalhas desbloqueadas! ${hardcoreStatusMsg}`;
         resultMessage.classList.remove('hidden');
       }
     } else {
       if (resultMessage) {
         resultMessage.className = 'result-message warning';
-        resultMessage.innerHTML = `⚠️ <strong>Texto personalizado concluído com ${errors} erro${errors > 1 ? 's' : ''}</strong> (${finalAccuracy}% de precisão). É necessário pelo menos 90% de precisão para ganhar medalhas!`;
+        resultMessage.innerHTML = `⚠️ <strong>Texto personalizado concluído com ${errors} erro${errors > 1 ? 's' : ''}</strong> (${finalAccuracy}% de precisão). É necessário pelo menos 90% de precisão para ganhar medalhas! ${hardcoreStatusMsg}`;
         resultMessage.classList.remove('hidden');
       }
     }
@@ -482,13 +903,13 @@ function endTest(finalAccuracy) {
 
       if (resultMessage) {
         resultMessage.className = 'result-message success';
-        resultMessage.innerHTML = `🎉 <strong>Incrível!</strong> ${finalAccuracy}% de precisão em ${finalTimeInSeconds}s. Medalhas conquistadas!`;
+        resultMessage.innerHTML = `🎉 <strong>Incrível!</strong> ${finalAccuracy}% de precisão em ${finalTimeInSeconds}s. Medalhas conquistadas! ${hardcoreStatusMsg}`;
         resultMessage.classList.remove('hidden');
       }
     } else {
       if (resultMessage) {
         resultMessage.className = 'result-message warning';
-        resultMessage.innerHTML = `⚠️ <strong>Texto concluído com ${errors} erro${errors > 1 ? 's' : ''}</strong> (${finalAccuracy}% de precisão). É necessário ter no mínimo 90% de precisão para conquistar medalhas!`;
+        resultMessage.innerHTML = `⚠️ <strong>Texto concluído com ${errors} erro${errors > 1 ? 's' : ''}</strong> (${finalAccuracy}% de precisão). É necessário ter no mínimo 90% de precisão para conquistar medalhas! ${hardcoreStatusMsg}`;
         resultMessage.classList.remove('hidden');
       }
     }
@@ -501,7 +922,7 @@ if (typingBox) typingBox.addEventListener('click', focusInput);
 if (restartBtn) restartBtn.addEventListener('click', initTest);
 
 // ==========================================================================
-// MENSAGENS DE BOAS-VINDAS E MOTIVAÇÃO
+// MENSAGENS DE BOAS-VINDAS
 // ==========================================================================
 const motivationalQuotes = [
   "A prática constante é o segredo para dominar o teclado.",
@@ -540,7 +961,6 @@ function showWelcomeModal() {
     closeBtn.removeEventListener('click', closeModalFn);
     document.removeEventListener('keydown', handleKeyDown);
     modal.removeEventListener('click', handleOverlayClick);
-
     focusInput();
   };
 
@@ -563,7 +983,7 @@ function showWelcomeModal() {
 }
 
 // ==========================================================================
-// SISTEMA DE CONQUISTAS & MEDALHAS (11 CONQUISTAS)
+// CONQUISTAS E ESTATÍSTICAS
 // ==========================================================================
 const achievementsList = [
   { id: 'surgeon', icon: '🎯', title: 'Cirurgião do Teclado', desc: '3 frases seguidas com 100% de precisão' },
@@ -688,11 +1108,16 @@ function trackSpaceKey() {
   saveUserStats();
 }
 
-// INICIALIZAÇÃO ÚNICA AO CARREGAR A PÁGINA
+// ==========================================================================
+// INICIALIZAÇÃO DA APLICAÇÃO
+// ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
   loadSavedTheme();
+  loadSavedAudioSettings();
+  initZenAndAudioControls();
   setDifficulty('easy');
+  loadAchievements();
+  updateHardcoreUI();
   showWelcomeModal();
-  renderAchievements();
-  checkTimeAndStreakAchievements();
+  initTest();
 });
