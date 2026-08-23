@@ -63,20 +63,29 @@
       </div>
     </header>
 
-    <section class="metrics-grid zen-target">
-      <div class="metric-card">
-        <span class="metric-label">PPM</span>
-        <span class="metric-value" id="ppm-val">0</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-label">Precisão</span>
-        <span class="metric-value" id="accuracy-val">100%</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-label">Tempo</span>
-        <span class="metric-value" id="timer-val">0s</span>
-      </div>
-    </section>
+    <!-- Trecho atualizado no index.html -->
+<section class="metrics-grid zen-target">
+  <div class="metric-card">
+    <button
+      type="button"
+      class="metric-info-btn"
+      id="ppm-info-btn"
+    >
+      <span class="metric-label">PPM</span>
+      <span class="info-icon" aria-hidden="true">ℹ️</span>
+    </button>
+    <span class="metric-value" id="ppm-val">0</span>
+  </div>
+  <div class="metric-card">
+    <span class="metric-label">Precisão</span>
+    <span class="metric-value" id="accuracy-val">100%</span>
+  </div>
+  <div class="metric-card">
+    <span class="metric-label">Tempo</span>
+    <span class="metric-value" id="timer-val">0s</span>
+  </div>
+</section>
+
 
     <!-- Quadro de Medalhas -->
     <section class="medals-box zen-target">
@@ -181,6 +190,23 @@
         Para conseguir desativar o Modo Hardcore, você precisa completar <strong>3 fases consecutivas com 100% de precisão</strong>.
       </p>
       <button type="button" class="btn-primary" id="btn-hardcore-modal-close">Entendido!</button>
+    </div>
+  </div>
+
+  <!-- POPUP: INFORMAÇÃO SOBRE PPM -->
+  <div class="modal-overlay" id="modal-ppm-info">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">ℹ️ O que é PPM?</h3>
+        <button type="button" class="modal-close" data-close="modal-ppm-info">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="ppm-info-text">
+          <strong>PPM</strong> significa <strong>Palavras Por Minuto</strong> e mede a sua velocidade de digitação.
+          <br><br>
+          Cada "palavra" é calculada como um grupo de 5 caracteres digitados corretamente. Quanto mais alto o valor, mais rápido você está digitando com precisão.
+        </p>
+      </div>
     </div>
   </div>
 

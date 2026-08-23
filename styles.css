@@ -159,14 +159,22 @@ body {
   justify-content: center;
   z-index: 1000;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.25s ease;
+  will-change: opacity;
+  /* A visibilidade só muda depois que o fade termina (ao fechar) e
+     instantaneamente ao abrir — assim o popup continua visível durante
+     a transição de saída, mas o navegador para de pintar e de permitir
+     interação com ele assim que estiver realmente escondido. */
+  transition: opacity 0.18s ease-out, visibility 0s linear 0.18s;
   padding: 16px;
 }
 
 .modal-overlay.active {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
+  transition: opacity 0.18s ease-out, visibility 0s linear 0s;
 }
 
 .modal-card {
@@ -177,8 +185,9 @@ body {
   max-width: 420px;
   padding: 18px;
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
-  transform: translateY(12px) scale(0.96);
-  transition: transform 0.25s ease, background-color 0.3s ease, border-color 0.3s ease;
+  transform: translateY(10px) scale(0.97);
+  will-change: transform;
+  transition: transform 0.18s ease-out, background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .modal-card-wide {
@@ -235,7 +244,7 @@ body {
   justify-content: space-between;
   cursor: pointer;
   text-align: left;
-  transition: all 0.2s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .modal-option-btn:hover {
@@ -372,7 +381,7 @@ body {
   text-align: center;
   opacity: 0.35;
   filter: grayscale(100%);
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease, filter 0.2s ease, border-color 0.2s ease;
 }
 
 .medal-item.unlocked {
@@ -645,15 +654,15 @@ body {
   --bg-main: #282a36;
   --card-bg: #44475a;
   --card-border: #6272a4;
-  --text-main: #f8f8f2;
+  --text-main: #e8e8e0;
   --text-muted: #bd93f9;
   --accent: #ff79c6;
-  --accent-hover: #ff5555;
+  --accent-hover: #ff6e9c;
   --btn-sec-bg: #6272a4;
   --btn-sec-hover: #44475a;
   --correct: #50fa7b;
-  --incorrect: #ff5555;
-  --incorrect-bg: rgba(255, 85, 85, 0.25);
+  --incorrect: #ff6e6e;
+  --incorrect-bg: rgba(255, 85, 85, 0.2);
   --warning-bg: rgba(241, 250, 140, 0.15);
   --warning-border: #f1fa8c;
   --warning-text: #f1fa8c;
@@ -685,8 +694,8 @@ body {
   --card-border: #2d2d2d;
   --text-main: #a0a0a0;
   --text-muted: #666666;
-  --accent: #e0e0e0;
-  --accent-hover: #ffffff;
+  --accent: #d4d4d4;
+  --accent-hover: #f0f0f0;
   --btn-sec-bg: #2d2d2d;
   --btn-sec-hover: #3d3d3d;
   --correct: #4caf50;
@@ -719,7 +728,7 @@ body {
 
 [data-theme="light"] {
   --bg-main: #f1f5f9;
-  --card-bg: #ffffff;
+  --card-bg: #fbfdff;
   --card-border: #cbd5e1;
   --text-main: #64748b;
   --text-muted: #94a3b8;
@@ -757,7 +766,7 @@ body {
 
 [data-theme="pastel"] {
   --bg-main: #fbf0f4;
-  --card-bg: #ffffff;
+  --card-bg: #fefbfc;
   --card-border: #f3d5e0;
   --text-main: #8a7380;
   --text-muted: #c2a8b6;
@@ -794,75 +803,75 @@ body {
 }
 
 [data-theme="amber"] {
-  --bg-main: #120e00;
-  --card-bg: #1c1700;
-  --card-border: #382e00;
-  --text-main: #806700;
-  --text-muted: #b39100;
-  --accent: #ffb700;
-  --accent-hover: #d99b00;
-  --btn-sec-bg: #382e00;
-  --btn-sec-hover: #524300;
-  --correct: #00ff66;
-  --incorrect: #ff3333;
-  --incorrect-bg: rgba(255, 51, 51, 0.25);
-  --warning-bg: rgba(255, 183, 0, 0.15);
-  --warning-border: #ffb700;
-  --warning-text: #ffb700;
-  --overlay-bg: rgba(0, 0, 0, 0.85);
+  --bg-main: #1a1400;
+  --card-bg: #241d00;
+  --card-border: #453900;
+  --text-main: #a3852b;
+  --text-muted: #8a7020;
+  --accent: #e6a700;
+  --accent-hover: #cf9600;
+  --btn-sec-bg: #453900;
+  --btn-sec-hover: #5c4d00;
+  --correct: #3ddb7a;
+  --incorrect: #ff5c5c;
+  --incorrect-bg: rgba(255, 92, 92, 0.2);
+  --warning-bg: rgba(230, 167, 0, 0.15);
+  --warning-border: #e6a700;
+  --warning-text: #e6a700;
+  --overlay-bg: rgba(10, 8, 0, 0.85);
 }
 
 [data-theme="matrix"] {
-  --bg-main: #020d04;
-  --card-bg: #051a08;
-  --card-border: #0a3811;
-  --text-main: #1e7029;
-  --text-muted: #134d1b;
-  --accent: #00ff2b;
-  --accent-hover: #00cc22;
-  --btn-sec-bg: #0a3811;
-  --btn-sec-hover: #10541a;
-  --correct: #00ff2b;
-  --incorrect: #ff003c;
-  --incorrect-bg: rgba(255, 0, 60, 0.25);
-  --warning-bg: rgba(0, 255, 43, 0.15);
-  --warning-border: #00ff2b;
-  --warning-text: #00ff2b;
-  --overlay-bg: rgba(2, 13, 4, 0.9);
+  --bg-main: #071208;
+  --card-bg: #0c1f0f;
+  --card-border: #17431f;
+  --text-main: #3f9950;
+  --text-muted: #2c6e38;
+  --accent: #33d957;
+  --accent-hover: #29b849;
+  --btn-sec-bg: #17431f;
+  --btn-sec-hover: #1f5a29;
+  --correct: #33d957;
+  --incorrect: #ff4d5e;
+  --incorrect-bg: rgba(255, 77, 94, 0.2);
+  --warning-bg: rgba(51, 217, 87, 0.15);
+  --warning-border: #33d957;
+  --warning-text: #33d957;
+  --overlay-bg: rgba(7, 18, 8, 0.9);
 }
 
 [data-theme="terminal-blue"] {
-  --bg-main: #000a24;
-  --card-bg: #001447;
-  --card-border: #00288a;
-  --text-main: #4d82ff;
-  --text-muted: #2151c4;
-  --accent: #80a6ff;
-  --accent-hover: #598bff;
-  --btn-sec-bg: #00288a;
-  --btn-sec-hover: #0038c2;
-  --correct: #00ffaa;
-  --incorrect: #ff3366;
-  --incorrect-bg: rgba(255, 51, 102, 0.25);
+  --bg-main: #071233;
+  --card-bg: #0c1c52;
+  --card-border: #1c3499;
+  --text-main: #6e97ff;
+  --text-muted: #3f66c9;
+  --accent: #8fb0ff;
+  --accent-hover: #729bff;
+  --btn-sec-bg: #1c3499;
+  --btn-sec-hover: #2843b8;
+  --correct: #3ddba3;
+  --incorrect: #ff5c7a;
+  --incorrect-bg: rgba(255, 92, 122, 0.2);
   --warning-bg: rgba(255, 204, 0, 0.15);
   --warning-border: #ffcc00;
   --warning-text: #ffcc00;
-  --overlay-bg: rgba(0, 10, 36, 0.9);
+  --overlay-bg: rgba(7, 18, 51, 0.9);
 }
 
 [data-theme="synthwave"] {
   --bg-main: #1a0933;
   --card-bg: #2a124d;
   --card-border: #521c7a;
-  --text-main: #d47aff;
-  --text-muted: #8c3bb8;
-  --accent: #ff2a85;
-  --accent-hover: #d61867;
+  --text-main: #dd94ee;
+  --text-muted: #9955bd;
+  --accent: #f0509e;
+  --accent-hover: #d43f89;
   --btn-sec-bg: #521c7a;
   --btn-sec-hover: #732aab;
-  --correct: #00f5d4;
-  --incorrect: #f72585;
-  --incorrect-bg: rgba(247, 37, 133, 0.25);
+  --correct: #33e3c9;
+  --incorrect: #f75c96;
+  --incorrect-bg: rgba(247, 92, 150, 0.2);
   --warning-bg: rgba(254, 228, 64, 0.15);
   --warning-border: #fee440;
   --warning-text: #fee440;
@@ -955,7 +964,9 @@ body {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-top: 4px solid var(--accent);
-  animation: welcomePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  /* A animação de entrada vem da transição compartilhada de .modal-card
+     (aberta via .modal-overlay.active) — evita duas animações de
+     transform disputando o mesmo elemento ao mesmo tempo. */
 }
 
 .welcome-icon { font-size: 2.5rem; margin-bottom: 12px; }
@@ -970,11 +981,6 @@ body {
   border-left: 3px solid var(--accent);
   margin-bottom: 24px;
   line-height: 1.5;
-}
-
-@keyframes welcomePop {
-  from { opacity: 0; transform: scale(0.9) translateY(10px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .btn-primary {
@@ -1061,4 +1067,58 @@ body.zen-active .zen-target {
   opacity: 0 !important;
   pointer-events: none !important;
   transform: translateY(-12px);
+}
+
+.metric-info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  margin: 0 auto;
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.metric-info-btn .metric-label {
+  pointer-events: none;
+}
+
+.metric-info-btn .info-icon {
+  font-size: 0.7rem;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.metric-info-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.ppm-info-text {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-main);
+}
+
+/* ==========================================================================
+   PREFERÊNCIA DE MOVIMENTO REDUZIDO
+   Respeita a configuração do sistema operacional do usuário e também
+   poupa processamento em aparelhos mais fracos, removendo transições e
+   animações decorativas quando o modo de movimento reduzido está ativo.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

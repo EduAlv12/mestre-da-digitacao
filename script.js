@@ -131,6 +131,7 @@ const modalSound = document.getElementById('modal-sound');
 const modalCustomText = document.getElementById('modal-custom-text');
 const modalAchievements = document.getElementById('modal-achievements');
 const modalHardcoreInfo = document.getElementById('modal-hardcore-info');
+const modalPpmInfo = document.getElementById('modal-ppm-info');
 
 const customTextInput = document.getElementById('custom-text-input');
 const customTextError = document.getElementById('custom-text-error');
@@ -147,6 +148,7 @@ const customMedalKeys = ['custom_first', 'custom_long', 'custom_speed', 'custom_
 
 let currentText = "";
 let timerInterval = null;
+let autoRestartTimeout = null;
 let isRunning = false;
 let totalTyped = 0;
 let errors = 0;
@@ -402,7 +404,7 @@ function showHardcoreModal(title, text, icon = '🔥') {
   if (closeBtn) {
     closeBtn.onclick = () => {
       closeModal(modalHardcoreInfo);
-      focusInput();
+      // Sem foco automático: o teclado mobile só abre com toque direto na caixa.
     };
   }
 }
@@ -460,17 +462,21 @@ function initZenAndAudioControls() {
   window.addEventListener('keydown', (e) => {
     if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Escape'].includes(e.key)) return;
 
+    // Só toca som e ativa o Modo Zen quando o foco está de fato no teste
+    // de digitação — evita disparar som ao digitar em modais (ex: texto
+    // personalizado) ou navegar pela página com o teclado.
+    const isTypingFocused = document.activeElement === hiddenInput || document.activeElement === textDisplay;
+    if (!isTypingFocused) return;
+
     const isSpecialKey = ['Backspace', 'Enter', 'Space'].includes(e.code);
     audioEngine.playKey(isSpecialKey);
 
     document.body.classList.remove('zen-active');
     clearTimeout(zenTimeout);
 
-    if (document.activeElement === hiddenInput || document.activeElement === textDisplay) {
-      zenTimeout = setTimeout(() => {
-        document.body.classList.add('zen-active');
-      }, INACTIVITY_DELAY);
-    }
+    zenTimeout = setTimeout(() => {
+      document.body.classList.add('zen-active');
+    }, INACTIVITY_DELAY);
   });
 
   window.addEventListener('mousemove', () => {
@@ -492,6 +498,9 @@ function getStorageKey() { return `typingMedalCounts_${getDifficulty()}`; }
 function openModal(modal) { if (modal) modal.classList.add('active'); }
 function closeModal(modal) { if (modal) modal.classList.remove('active'); }
 
+const ppmInfoTrigger = document.getElementById('ppm-info-btn');
+if (ppmInfoTrigger) ppmInfoTrigger.addEventListener('click', () => openModal(modalPpmInfo));
+
 if (difficultyTrigger) difficultyTrigger.addEventListener('click', () => openModal(modalDifficulty));
 if (themeTrigger) themeTrigger.addEventListener('click', () => openModal(modalTheme));
 if (soundTrigger) soundTrigger.addEventListener('click', () => openModal(modalSound));
@@ -509,7 +518,7 @@ document.querySelectorAll('.modal-close').forEach(btn => {
   });
 });
 
-[modalDifficulty, modalTheme, modalSound, modalCustomText, modalAchievements, modalHardcoreInfo].forEach(modal => {
+[modalDifficulty, modalTheme, modalSound, modalCustomText, modalAchievements, modalHardcoreInfo, modalPpmInfo].forEach(modal => {
   if (modal) {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) closeModal(modal);
@@ -525,6 +534,7 @@ document.addEventListener('keydown', (e) => {
     closeModal(modalCustomText);
     closeModal(modalAchievements);
     closeModal(modalHardcoreInfo);
+    closeModal(modalPpmInfo);
   }
 });
 
@@ -707,6 +717,7 @@ function focusInput() {
 // ==========================================================================
 function initTest() {
   clearInterval(timerInterval);
+  clearTimeout(autoRestartTimeout);
   isRunning = false;
   totalTyped = 0;
   errors = 0;
@@ -749,7 +760,17 @@ function initTest() {
   }
 
   updateHardcoreUI();
-  focusInput();
+  // Não focamos o input aqui de propósito: o teclado mobile só deve abrir
+  // quando o usuário tocar diretamente na caixa de digitação, nunca de
+  // forma automática ao carregar a página, trocar de dificuldade ou
+  // reiniciar a frase.
+}
+
+// Fonte única de verdade para o tempo decorrido, usada tanto no timer
+// ao vivo quanto no resultado final — antes o timer usava Math.floor e
+// o resultado final usava Math.round, fazendo o tempo "pular" 1s.
+function getElapsedSeconds() {
+  return Math.max(1, Math.floor((performance.now() - startTime) / 1000));
 }
 
 function startTimer() {
@@ -758,7 +779,7 @@ function startTimer() {
   startTime = performance.now();
 
   timerInterval = setInterval(() => {
-    const elapsedSeconds = Math.max(1, Math.floor((performance.now() - startTime) / 1000));
+    const elapsedSeconds = getElapsedSeconds();
     if (timerVal) timerVal.textContent = `${elapsedSeconds}s`;
     calculateMetrics(elapsedSeconds);
   }, 1000);
@@ -870,13 +891,13 @@ function handleTyping() {
   }
 }
 
+// Localize a função endTest(finalAccuracy) em script.js e adicione o setTimeout ao final dela:
 function endTest(finalAccuracy) {
   clearInterval(timerInterval);
   if (hiddenInput) hiddenInput.disabled = true;
   isRunning = false;
 
-  const endTime = performance.now();
-  const finalTimeInSeconds = Math.max(1, Math.round((endTime - startTime) / 1000));
+  const finalTimeInSeconds = getElapsedSeconds();
   if (timerVal) timerVal.textContent = `${finalTimeInSeconds}s`;
 
   const finalWpm = calculateMetrics(finalTimeInSeconds);
@@ -942,7 +963,17 @@ function endTest(finalAccuracy) {
       }
     }
   }
+
+  // Atualiza a frase automaticamente após 2 segundos para o usuário ver o resultado.
+  // Guardamos o id para poder cancelá-lo caso o usuário troque de dificuldade,
+  // tema ou clique em "Nova Frase" antes desses 2s (evitava um initTest()
+  // "fantasma" disparando por cima de uma ação manual do usuário).
+  clearTimeout(autoRestartTimeout);
+  autoRestartTimeout = setTimeout(() => {
+    initTest();
+  }, 2000);
 }
+
 
 if (textDisplay) textDisplay.addEventListener('click', focusInput);
 const typingBox = document.getElementById('typing-box-container');
@@ -989,7 +1020,7 @@ function showWelcomeModal() {
     closeBtn.removeEventListener('click', closeModalFn);
     document.removeEventListener('keydown', handleKeyDown);
     modal.removeEventListener('click', handleOverlayClick);
-    focusInput();
+    // Sem foco automático: o teclado mobile só abre com toque direto na caixa.
   };
 
   const handleKeyDown = (e) => {
@@ -1068,6 +1099,15 @@ function renderAchievements() {
   }).join('');
 }
 
+// Retorna a data local (YYYY-MM-DD) no fuso do usuário, evitando o bug
+// de usar toISOString() (que converte para UTC e erra a virada do dia).
+function getLocalDateStr(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function checkTimeAndStreakAchievements() {
   const now = new Date();
   const hour = now.getHours();
@@ -1075,11 +1115,11 @@ function checkTimeAndStreakAchievements() {
   if (hour >= 0 && hour < 5) unlockAchievement('night_owl');
   if (hour >= 6 && hour < 8) unlockAchievement('morning_coffee');
 
-  const todayStr = now.toISOString().split('T')[0];
+  const todayStr = getLocalDateStr(now);
   if (userStats.lastActiveDate !== todayStr) {
     const yesterday = new Date();
     yesterday.setDate(now.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    const yesterdayStr = getLocalDateStr(yesterday);
 
     if (userStats.lastActiveDate === yesterdayStr) {
       userStats.dayStreak += 1;
@@ -1132,9 +1172,20 @@ function trackThemeChange(themeName) {
 
 function trackSpaceKey() {
   userStats.spaceCount += 1;
-  if (userStats.spaceCount >= 1000) unlockAchievement('space_destroyer');
-  saveUserStats();
+  if (userStats.spaceCount >= 1000) {
+    unlockAchievement('space_destroyer');
+  }
+  // Persiste a cada 20 espaços (e sempre no momento de desbloquear a
+  // conquista) em vez de gravar no localStorage a cada tecla — evita
+  // escrita excessiva em disco durante digitação rápida.
+  if (userStats.spaceCount % 20 === 0 || userStats.spaceCount === 1000) {
+    saveUserStats();
+  }
 }
+
+// Garante que a contagem de espaços não seja perdida ao fechar/recarregar
+// a aba entre dois múltiplos de 20.
+window.addEventListener('beforeunload', saveUserStats);
 
 // ==========================================================================
 // INICIALIZAÇÃO DA APLICAÇÃO
