@@ -35,7 +35,6 @@
             <span class="trigger-icon">▾</span>
           </button>
         </div>
-        <!-- GATILHO DE SELEÇÃO DE SOM -->
         <div class="control-group">
           <label>Som</label>
           <button type="button" class="select-trigger" id="sound-trigger">
@@ -43,7 +42,6 @@
             <span class="trigger-icon">▾</span>
           </button>
         </div>
-        <!-- MODO HARDCORE TOGGLE -->
         <div class="control-group">
           <label>Hardcore 🔥</label>
           <div class="toggle-container" id="hardcore-toggle-wrapper">
@@ -63,31 +61,7 @@
       </div>
     </header>
 
-    <!-- Trecho atualizado no index.html -->
-<section class="metrics-grid zen-target">
-  <div class="metric-card">
-    <button
-      type="button"
-      class="metric-info-btn"
-      id="ppm-info-btn"
-    >
-      <span class="metric-label">PPM</span>
-      <span class="info-icon" aria-hidden="true">ℹ️</span>
-    </button>
-    <span class="metric-value" id="ppm-val">0</span>
-  </div>
-  <div class="metric-card">
-    <span class="metric-label">Precisão</span>
-    <span class="metric-value" id="accuracy-val">100%</span>
-  </div>
-  <div class="metric-card">
-    <span class="metric-label">Tempo</span>
-    <span class="metric-value" id="timer-val">0s</span>
-  </div>
-</section>
-
-
-    <!-- Quadro de Medalhas -->
+    <!-- 1. MEDALHAS (PRIMEIRO) -->
     <section class="medals-box zen-target">
       <div class="medals-title" id="medals-title">🏅 Medalhas (Modo Padrão)</div>
       
@@ -146,10 +120,46 @@
       </div>
     </section>
 
+    <!-- 2. MÉTRICAS (SEGUNDO) -->
+    <section class="metrics-grid zen-target">
+      <div class="metric-card">
+        <button type="button" class="metric-info-btn" id="ppm-info-btn">
+          <span class="metric-label">PPM</span>
+          <span class="info-icon" aria-hidden="true">ℹ️</span>
+        </button>
+        <span class="metric-value" id="ppm-val">0</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Precisão</span>
+        <span class="metric-value" id="accuracy-val">100%</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Tempo</span>
+        <span class="metric-value" id="timer-val">0s</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">🏆 Recorde</span>
+        <span class="metric-value" id="best-ppm-val">0</span>
+      </div>
+    </section>
+
+    <!-- 3. BARRA DE PROGRESSO (TERCEIRO) -->
+    <div class="progress-container zen-target">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+      </div>
+      <div class="progress-info">
+        <span id="progress-text">0 / 0 caracteres</span>
+        <span id="progress-percent">0%</span>
+      </div>
+    </div>
+
+    <!-- 4. ÁREA DE DIGITAÇÃO (QUARTO) -->
     <section class="typing-box" id="typing-box-container">
       <div class="typing-header-tags">
         <div class="difficulty-tag" id="difficulty-tag">Nível: Fácil</div>
         <div class="hardcore-tag hidden" id="hardcore-tag">🔥 HARDCORE (0/3)</div>
+        <div class="countdown-tag hidden" id="countdown-tag">⏱️ 30s</div>
       </div>
       <div class="typing-wrapper">
         <input 
@@ -163,14 +173,27 @@
           inputmode="text" 
         />
         <div class="text-display" id="text-display" tabindex="0"></div>
-        <small class="focus-hint" id="focus-hint">Toque no quadro para abrir o teclado</small>
+        <small class="focus-hint" id="focus-hint">👆 Toque no quadro para abrir o teclado</small>
       </div>
 
       <div id="result-message" class="result-message hidden"></div>
 
       <div class="action-bar zen-target" id="action-bar">
-        <button id="restart-btn" class="btn-accent">🔄 Nova Frase</button>
+        <button id="restart-btn" class="btn-accent">↻ Nova Frase</button>
         <button id="edit-custom-btn" class="btn-secondary hidden">✏️ Alterar Texto</button>
+        <button id="share-site-btn" class="btn-secondary">📤 Compartilhar Site</button>
+        <button id="timer-mode-btn" class="btn-secondary">⏱️ Contra-Relógio</button>
+      </div>
+    </section>
+
+    <!-- HISTÓRICO DE PPM -->
+    <section class="history-box zen-target" id="history-box">
+      <div class="history-header">
+        <span class="history-title">📊 Evolução do PPM</span>
+        <span class="history-avg" id="history-avg">Média: 0</span>
+      </div>
+      <div class="history-chart" id="history-chart">
+        <!-- Os pontos do gráfico serão gerados via JS -->
       </div>
     </section>
 

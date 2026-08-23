@@ -109,6 +109,14 @@ let customUserText = localStorage.getItem('customUserText') || "";
 let isHardcore = JSON.parse(localStorage.getItem('mestre_hardcore_mode') || 'false');
 let hardcoreConsecutivePerfect = parseInt(localStorage.getItem('mestre_hardcore_streak') || '0', 10);
 
+// NOVAS VARIÁVEIS PARA AS MELHORIAS
+let ppmHistory = JSON.parse(localStorage.getItem('mestre_ppm_history') || '[]');
+let bestPPM = parseInt(localStorage.getItem('mestre_best_ppm') || '0');
+let isTimerMode = false;
+let timerModeLimit = 30;
+let timerModeInterval = null;
+let currentPPM = 0;
+
 const difficultyTriggerText = document.getElementById('difficulty-trigger-text');
 const themeTriggerText = document.getElementById('theme-trigger-text');
 const soundTriggerText = document.getElementById('sound-trigger-text');
@@ -124,6 +132,7 @@ const restartBtn = document.getElementById('restart-btn');
 const editCustomBtn = document.getElementById('edit-custom-btn');
 const resultMessage = document.getElementById('result-message');
 const medalsTitle = document.getElementById('medals-title');
+const countdownTag = document.getElementById('countdown-tag'); // <-- ADICIONADO AQUI
 
 const modalDifficulty = document.getElementById('modal-difficulty');
 const modalTheme = document.getElementById('modal-theme');
@@ -208,10 +217,10 @@ class AudioEngine {
       try {
         this.currentGain.gain.cancelScheduledValues(now);
         this.currentGain.gain.setValueAtTime(this.currentGain.gain.value, now);
-        this.currentGain.gain.linearRampToValueAtTime(0.0001, now + 0.003);
-        this.currentOsc.stop(now + 0.004);
+        this.currentGain.gain.linearRampToValueAtTime(0.0001, now + 0.008);
+        this.currentOsc.stop(now + 0.01);
       } catch (e) {
-        // Ignora caso a nota já tenha finalizado
+        // ignora se já finalizou
       }
     }
   }
@@ -235,7 +244,7 @@ class AudioEngine {
     const detune = (Math.random() - 0.5) * 35;
     let baseFreq = 600;
     let endFreq = 150;
-    let duration = 0.025;
+    let duration = 0.040;
     let waveType = 'triangle';
     let baseGain = 0.12;
 
@@ -244,23 +253,23 @@ class AudioEngine {
         waveType = 'triangle';
         baseFreq = isSpecial ? 220 : 380;
         endFreq = isSpecial ? 80 : 120;
-        duration = 0.035;
-        baseGain = 0.18;
+        duration = 0.045;
+        baseGain = 0.16;
         break;
 
       case 'pop':
         waveType = 'sine';
         baseFreq = isSpecial ? 450 : 750;
         endFreq = isSpecial ? 200 : 300;
-        duration = 0.022;
-        baseGain = 0.14;
+        duration = 0.035;
+        baseGain = 0.13;
         break;
 
       case 'retro':
         waveType = 'sawtooth';
         baseFreq = isSpecial ? 350 : 900;
         endFreq = isSpecial ? 150 : 400;
-        duration = 0.02;
+        duration = 0.030;
         baseGain = 0.08;
         break;
 
@@ -268,7 +277,7 @@ class AudioEngine {
         waveType = 'square';
         baseFreq = isSpecial ? 300 : 1200;
         endFreq = isSpecial ? 100 : 250;
-        duration = 0.018;
+        duration = 0.028;
         baseGain = 0.09;
         break;
     }
@@ -277,14 +286,15 @@ class AudioEngine {
     osc.frequency.setValueAtTime(baseFreq + detune, now);
     osc.frequency.exponentialRampToValueAtTime(Math.max(40, endFreq), now + duration);
 
-    gain.gain.setValueAtTime(baseGain, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    gain.gain.setValueAtTime(baseGain * 0.5, now);
+    gain.gain.linearRampToValueAtTime(baseGain, now + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration + 0.005);
 
     osc.start(now);
-    osc.stop(now + duration);
+    osc.stop(now + duration + 0.01);
   }
 
-    playErrorSound() {
+  playErrorSound() {
     if (!this.enabled || this.profile === 'silent') return;
     this.init();
 
@@ -292,12 +302,11 @@ class AudioEngine {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
-    // Ajustado para um som mais agudo e perceptível (onda triangular com frequência mais alta)
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(880, now); // Frequência aguda inicial (Nota Lá)
+    osc.frequency.setValueAtTime(880, now);
     osc.frequency.exponentialRampToValueAtTime(440, now + 0.12);
 
-    gain.gain.setValueAtTime(0.12 * this.volume, now);
+    gain.gain.setValueAtTime(0.10 * this.volume, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
     osc.connect(gain);
@@ -306,7 +315,6 @@ class AudioEngine {
     osc.start(now);
     osc.stop(now + 0.12);
   }
-
 
   playThemeSwitch() {
     if (!this.enabled || this.profile === 'silent') return;
@@ -325,7 +333,7 @@ class AudioEngine {
     osc.frequency.setValueAtTime(300, now);
     osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
 
-    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.setValueAtTime(0.08, now);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
 
     osc.start(now);
@@ -404,7 +412,6 @@ function showHardcoreModal(title, text, icon = '🔥') {
   if (closeBtn) {
     closeBtn.onclick = () => {
       closeModal(modalHardcoreInfo);
-      // Sem foco automático: o teclado mobile só abre com toque direto na caixa.
     };
   }
 }
@@ -462,9 +469,6 @@ function initZenAndAudioControls() {
   window.addEventListener('keydown', (e) => {
     if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Tab', 'Escape'].includes(e.key)) return;
 
-    // Só toca som e ativa o Modo Zen quando o foco está de fato no teste
-    // de digitação — evita disparar som ao digitar em modais (ex: texto
-    // personalizado) ou navegar pela página com o teclado.
     const isTypingFocused = document.activeElement === hiddenInput || document.activeElement === textDisplay;
     if (!isTypingFocused) return;
 
@@ -485,8 +489,6 @@ function initZenAndAudioControls() {
     }
     clearTimeout(zenTimeout);
   });
-
-  window.addEventListener('click', () => audioEngine.init(), { once: true });
 }
 
 // ==========================================================================
@@ -576,7 +578,7 @@ function setDifficulty(val) {
     if (standardMedalsGrid) standardMedalsGrid.classList.add('hidden');
     if (customMedalsGrid) customMedalsGrid.classList.remove('hidden');
     if (editCustomBtn) editCustomBtn.classList.remove('hidden');
-    if (restartBtn) restartBtn.textContent = "🔄 Recomeçar";
+    if (restartBtn) restartBtn.textContent = "↻ Recomeçar";
 
     if (!customUserText || customUserText.trim().length < 10) {
       openCustomTextModal();
@@ -586,7 +588,7 @@ function setDifficulty(val) {
     if (standardMedalsGrid) standardMedalsGrid.classList.remove('hidden');
     if (customMedalsGrid) customMedalsGrid.classList.add('hidden');
     if (editCustomBtn) editCustomBtn.classList.add('hidden');
-    if (restartBtn) restartBtn.textContent = "🔄 Nova Frase";
+    if (restartBtn) restartBtn.textContent = "↻ Nova Frase";
   }
 
   updateMedalLabels();
@@ -724,6 +726,15 @@ function initTest() {
   startTime = null;
   previousInputValue = "";
 
+  // Resetar barra de progresso
+  updateProgress(0, 1);
+  clearInterval(timerModeInterval);
+  timerModeInterval = null;
+  if (countdownTag) {
+    countdownTag.classList.add('hidden');
+    countdownTag.classList.remove('warning');
+  }
+
   if (timerVal) timerVal.textContent = "0s";
   if (ppmVal) ppmVal.textContent = "0";
   if (accuracyVal) accuracyVal.textContent = "100%";
@@ -760,15 +771,9 @@ function initTest() {
   }
 
   updateHardcoreUI();
-  // Não focamos o input aqui de propósito: o teclado mobile só deve abrir
-  // quando o usuário tocar diretamente na caixa de digitação, nunca de
-  // forma automática ao carregar a página, trocar de dificuldade ou
-  // reiniciar a frase.
+  updateProgress(0, currentText.length);
 }
 
-// Fonte única de verdade para o tempo decorrido, usada tanto no timer
-// ao vivo quanto no resultado final — antes o timer usava Math.floor e
-// o resultado final usava Math.round, fazendo o tempo "pular" 1s.
 function getElapsedSeconds() {
   return Math.max(1, Math.floor((performance.now() - startTime) / 1000));
 }
@@ -791,6 +796,7 @@ function calculateMetrics(seconds) {
     const wordsTyped = Math.max(0, totalTyped - errors) / 5;
     const wpm = Math.max(0, Math.round(wordsTyped / minutes));
     if (ppmVal) ppmVal.textContent = wpm;
+    currentPPM = wpm;
     return wpm;
   }
   return 0;
@@ -843,7 +849,6 @@ function handleTyping() {
   previousInputValue = hiddenInput.value;
   const inputChars = hiddenInput.value.split('');
 
-  // Toca o som de erro se uma nova letra inserida for incorreta
   if (inputChars.length > previousLength) {
     const lastIndex = inputChars.length - 1;
     if (inputChars[lastIndex] !== currentText[lastIndex]) {
@@ -853,6 +858,10 @@ function handleTyping() {
 
   if (!isRunning && inputChars.length > 0) {
     startTimer();
+    // Iniciar modo contra-relógio se ativo
+    if (isTimerMode && !timerModeInterval) {
+      startTimerMode();
+    }
   }
 
   const textSpans = textDisplay ? textDisplay.querySelectorAll('.char') : [];
@@ -878,6 +887,9 @@ function handleTyping() {
 
   totalTyped = inputChars.length;
 
+  // Atualizar barra de progresso
+  updateProgress(inputChars.length, currentText.length);
+
   let currentAcc = 100;
   if (totalTyped > 0) {
     currentAcc = Math.max(0, Math.round(((totalTyped - errors) / totalTyped) * 100));
@@ -891,9 +903,10 @@ function handleTyping() {
   }
 }
 
-// Localize a função endTest(finalAccuracy) em script.js e adicione o setTimeout ao final dela:
 function endTest(finalAccuracy) {
   clearInterval(timerInterval);
+  clearInterval(timerModeInterval);
+  timerModeInterval = null;
   if (hiddenInput) hiddenInput.disabled = true;
   isRunning = false;
 
@@ -901,6 +914,10 @@ function endTest(finalAccuracy) {
   if (timerVal) timerVal.textContent = `${finalTimeInSeconds}s`;
 
   const finalWpm = calculateMetrics(finalTimeInSeconds);
+  
+  // Atualizar histórico
+  updateHistory(finalWpm);
+  
   const diff = getDifficulty();
 
   let hardcoreStatusMsg = "";
@@ -964,16 +981,11 @@ function endTest(finalAccuracy) {
     }
   }
 
-  // Atualiza a frase automaticamente após 2 segundos para o usuário ver o resultado.
-  // Guardamos o id para poder cancelá-lo caso o usuário troque de dificuldade,
-  // tema ou clique em "Nova Frase" antes desses 2s (evitava um initTest()
-  // "fantasma" disparando por cima de uma ação manual do usuário).
   clearTimeout(autoRestartTimeout);
   autoRestartTimeout = setTimeout(() => {
     initTest();
-  }, 2000);
+  }, 1000);
 }
-
 
 if (textDisplay) textDisplay.addEventListener('click', focusInput);
 const typingBox = document.getElementById('typing-box-container');
@@ -1020,7 +1032,6 @@ function showWelcomeModal() {
     closeBtn.removeEventListener('click', closeModalFn);
     document.removeEventListener('keydown', handleKeyDown);
     modal.removeEventListener('click', handleOverlayClick);
-    // Sem foco automático: o teclado mobile só abre com toque direto na caixa.
   };
 
   const handleKeyDown = (e) => {
@@ -1036,7 +1047,10 @@ function showWelcomeModal() {
     }
   };
 
-  closeBtn.addEventListener('click', closeModalFn);
+  closeBtn.addEventListener('click', () => {
+    audioEngine.init();
+    closeModalFn();
+  });
   document.addEventListener('keydown', handleKeyDown);
   modal.addEventListener('click', handleOverlayClick);
 }
@@ -1045,17 +1059,17 @@ function showWelcomeModal() {
 // CONQUISTAS E ESTATÍSTICAS
 // ==========================================================================
 const achievementsList = [
-  { id: 'surgeon', icon: '🎯', title: 'Cirurgião do Teclado', desc: '3 frases seguidas com 100% de precisão' },
+  { id: 'surgeon', icon: '🎯', title: 'Cirurgião do Teclado', desc: '2 frases seguidas com 100% de precisão' },
   { id: 'slow_steady', icon: '🐢', title: 'Devagar e Sempre', desc: 'Frase com menos de 20 PPM e 100% de precisão' },
-  { id: 'light_speed', icon: '⚡', title: 'Velocidade da Luz', desc: 'Ultrapassar 80 PPM em qualquer frase' },
-  { id: 'hot_finger', icon: '🔥', title: 'Dedo Quente', desc: 'Média acima de 60 PPM em 5 frases seguidas' },
-  { id: 'fast_imperfect', icon: '🏎️', title: 'Velozes e Imperfeitos', desc: 'Mais de 70 PPM com precisão abaixo de 80%' },
+  { id: 'light_speed', icon: '⚡', title: 'Velocidade da Luz', desc: 'Ultrapassar 70 PPM em qualquer frase' },
+  { id: 'hot_finger', icon: '🔥', title: 'Dedo Quente', desc: 'Média acima de 50 PPM em 5 frases seguidas' },
+  { id: 'fast_imperfect', icon: '🏎️', title: 'Velozes e Imperfeitos', desc: 'Mais de 60 PPM com precisão abaixo de 80%' },
   { id: 'night_owl', icon: '🦉', title: 'Coruja Noturna', desc: 'Treinar entre 00:00 e 05:00 da manhã' },
   { id: 'morning_coffee', icon: '☕', title: 'Café com Teclado', desc: 'Treinar entre 06:00 e 08:00 da manhã' },
-  { id: 'streak_3', icon: '📅', title: 'Imparável', desc: 'Praticar no site por 3 dias seguidos' },
-  { id: 'chameleon', icon: '🎨', title: 'Camaleão Visual', desc: 'Alternar entre 5 temas na mesma sessão' },
+  { id: 'streak_3', icon: '📅', title: 'Imparável', desc: 'Praticar no site por 2 dias seguidos' },
+  { id: 'chameleon', icon: '🎨', title: 'Camaleão Visual', desc: 'Alternar entre 4 temas na mesma sessão' },
   { id: 'hacker_80s', icon: '📟', title: 'Hacker dos Anos 80', desc: 'Concluir frase nos temas Matrix ou Amber' },
-  { id: 'space_destroyer', icon: '⌨️', title: 'Destruidor de Espaços', desc: 'Acumular 1.000 barras de espaço pressionadas' }
+  { id: 'space_destroyer', icon: '⌨️', title: 'Destruidor de Espaços', desc: 'Acumular 500 barras de espaço pressionadas' }
 ];
 
 let userStats = JSON.parse(localStorage.getItem('mestre_user_stats')) || {
@@ -1099,8 +1113,6 @@ function renderAchievements() {
   }).join('');
 }
 
-// Retorna a data local (YYYY-MM-DD) no fuso do usuário, evitando o bug
-// de usar toISOString() (que converte para UTC e erra a virada do dia).
 function getLocalDateStr(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -1131,28 +1143,28 @@ function checkTimeAndStreakAchievements() {
     saveUserStats();
   }
 
-  if (userStats.dayStreak >= 3) unlockAchievement('streak_3');
+  if (userStats.dayStreak >= 2) unlockAchievement('streak_3');
 }
 
 function checkRoundAchievements(wpm, accuracy, currentTheme) {
   if (accuracy === 100) {
     userStats.perfectStreak += 1;
-    if (userStats.perfectStreak >= 3) unlockAchievement('surgeon');
+    if (userStats.perfectStreak >= 2) unlockAchievement('surgeon');
   } else {
     userStats.perfectStreak = 0;
   }
 
   if (wpm < 20 && accuracy === 100) unlockAchievement('slow_steady');
-  if (wpm > 80) unlockAchievement('light_speed');
+  if (wpm > 70) unlockAchievement('light_speed');
 
   userStats.recentWpms.push(wpm);
   if (userStats.recentWpms.length > 5) userStats.recentWpms.shift();
   if (userStats.recentWpms.length === 5) {
     const avgWpm = userStats.recentWpms.reduce((a, b) => a + b, 0) / 5;
-    if (avgWpm > 60) unlockAchievement('hot_finger');
+    if (avgWpm > 50) unlockAchievement('hot_finger');
   }
 
-  if (wpm > 70 && accuracy < 80) unlockAchievement('fast_imperfect');
+  if (wpm > 60 && accuracy < 80) unlockAchievement('fast_imperfect');
 
   if (currentTheme === 'matrix' || currentTheme === 'amber') {
     unlockAchievement('hacker_80s');
@@ -1167,25 +1179,234 @@ function trackThemeChange(themeName) {
     userStats.themesUsed.push(themeName);
     saveUserStats();
   }
-  if (userStats.themesUsed.length >= 5) unlockAchievement('chameleon');
+  if (userStats.themesUsed.length >= 4) unlockAchievement('chameleon');
 }
 
 function trackSpaceKey() {
   userStats.spaceCount += 1;
-  if (userStats.spaceCount >= 1000) {
+  if (userStats.spaceCount >= 500) {
     unlockAchievement('space_destroyer');
   }
-  // Persiste a cada 20 espaços (e sempre no momento de desbloquear a
-  // conquista) em vez de gravar no localStorage a cada tecla — evita
-  // escrita excessiva em disco durante digitação rápida.
-  if (userStats.spaceCount % 20 === 0 || userStats.spaceCount === 1000) {
+  if (userStats.spaceCount % 20 === 0 || userStats.spaceCount === 500) {
     saveUserStats();
   }
 }
 
-// Garante que a contagem de espaços não seja perdida ao fechar/recarregar
-// a aba entre dois múltiplos de 20.
 window.addEventListener('beforeunload', saveUserStats);
+
+// ==========================================================================
+// FUNÇÕES PARA AS NOVAS MELHORIAS
+// ==========================================================================
+
+// 1. BARRA DE PROGRESSO
+function updateProgress(typed, total) {
+  const percent = total > 0 ? Math.min(100, Math.round((typed / total) * 100)) : 0;
+  const progressFill = document.getElementById('progress-fill');
+  const progressText = document.getElementById('progress-text');
+  const progressPercent = document.getElementById('progress-percent');
+  
+  if (progressFill) progressFill.style.width = `${percent}%`;
+  if (progressText) progressText.textContent = `${typed} / ${total} caracteres`;
+  if (progressPercent) progressPercent.textContent = `${percent}%`;
+}
+
+// 2. HISTÓRICO DE PPM
+function updateHistory(wpm) {
+  if (wpm > 0) {
+    ppmHistory.push(wpm);
+    if (ppmHistory.length > 20) ppmHistory.shift();
+    localStorage.setItem('mestre_ppm_history', JSON.stringify(ppmHistory));
+    
+    if (wpm > bestPPM) {
+      bestPPM = wpm;
+      localStorage.setItem('mestre_best_ppm', bestPPM.toString());
+    }
+    const bestPPMVal = document.getElementById('best-ppm-val');
+    if (bestPPMVal) bestPPMVal.textContent = bestPPM;
+    
+    renderHistory();
+  }
+}
+
+function renderHistory() {
+  const historyChart = document.getElementById('history-chart');
+  if (!historyChart) return;
+  
+  const maxPPM = Math.max(10, ...ppmHistory, 1);
+  historyChart.innerHTML = '';
+  
+  if (ppmHistory.length === 0) {
+    historyChart.innerHTML = '<span style="font-size:0.6rem;color:var(--text-muted);width:100%;text-align:center;padding:8px 0;">Nenhum dado ainda. Comece a digitar!</span>';
+    const historyAvg = document.getElementById('history-avg');
+    if (historyAvg) historyAvg.textContent = 'Média: 0';
+    return;
+  }
+  
+  const avg = Math.round(ppmHistory.reduce((a,b) => a + b, 0) / ppmHistory.length);
+  const historyAvg = document.getElementById('history-avg');
+  if (historyAvg) historyAvg.textContent = `Média: ${avg}`;
+  
+  ppmHistory.forEach((value) => {
+    const dot = document.createElement('div');
+    dot.className = `history-dot ${value > 0 ? 'active' : ''}`;
+    const heightPercent = Math.max(10, (value / maxPPM) * 80);
+    dot.style.setProperty('--value', heightPercent);
+    dot.style.height = `${Math.max(4, heightPercent * 0.48)}px`;
+    
+    if (value > 0) {
+      const tooltip = document.createElement('span');
+      tooltip.className = 'dot-tooltip';
+      tooltip.textContent = `${value} PPM`;
+      dot.appendChild(tooltip);
+    }
+    
+    historyChart.appendChild(dot);
+  });
+}
+
+// 3. MODO CONTRA-RELÓGIO
+function toggleTimerMode() {
+  isTimerMode = !isTimerMode;
+  const timerModeBtn = document.getElementById('timer-mode-btn');
+  
+  if (isTimerMode) {
+    timerModeBtn.textContent = '⏱️ Modo Normal';
+    timerModeBtn.classList.add('active');
+    if (countdownTag) {
+      countdownTag.classList.remove('hidden');
+      countdownTag.textContent = `⏱️ ${timerModeLimit}s`;
+    }
+  } else {
+    timerModeBtn.textContent = '⏱️ Contra-Relógio';
+    timerModeBtn.classList.remove('active');
+    if (countdownTag) {
+      countdownTag.classList.add('hidden');
+      countdownTag.classList.remove('warning');
+    }
+    clearInterval(timerModeInterval);
+    timerModeInterval = null;
+  }
+  initTest();
+}
+
+function startTimerMode() {
+  if (!isTimerMode) return;
+  let remaining = timerModeLimit;
+  if (countdownTag) {
+    countdownTag.textContent = `⏱️ ${remaining}s`;
+    countdownTag.classList.remove('warning');
+  }
+  
+  clearInterval(timerModeInterval);
+  timerModeInterval = setInterval(() => {
+    remaining--;
+    if (countdownTag) {
+      countdownTag.textContent = `⏱️ ${remaining}s`;
+      if (remaining <= 5) {
+        countdownTag.classList.add('warning');
+      }
+    }
+    if (remaining <= 0) {
+      clearInterval(timerModeInterval);
+      timerModeInterval = null;
+      if (hiddenInput && !hiddenInput.disabled) {
+        const currentAcc = totalTyped > 0 ? Math.round(((totalTyped - errors) / totalTyped) * 100) : 100;
+        endTest(currentAcc);
+      }
+    }
+  }, 1000);
+}
+
+// 4. COMPARTILHAR O SITE
+function shareSite() {
+  const url = window.location.href;
+  const title = 'Mestre da Digitação - Teste sua velocidade!';
+  const text = '⌨️ Mestre da Digitação - Teste sua velocidade e precisão! 🚀';
+  
+  if (navigator.share) {
+    navigator.share({
+      title: title,
+      text: text,
+      url: url
+    }).catch((err) => {
+      if (err.name !== 'AbortError') {
+        fallbackShare(url, text);
+      }
+    });
+  } else {
+    fallbackShare(url, text);
+  }
+}
+
+function fallbackShare(url, text) {
+  const shareText = `${text}\n\n${url}`;
+  
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(shareText).then(() => {
+      showToast('✅ Link copiado! Compartilhe com seus amigos.');
+      const btn = document.getElementById('share-site-btn');
+      if (btn) {
+        const originalText = btn.textContent;
+        btn.textContent = '✅ Copiado!';
+        btn.classList.add('success');
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.classList.remove('success');
+        }, 2000);
+      }
+    }).catch(() => {
+      manualCopyFallback(shareText);
+    });
+  } else {
+    manualCopyFallback(shareText);
+  }
+}
+
+function manualCopyFallback(text) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.select();
+  
+  try {
+    document.execCommand('copy');
+    showToast('✅ Link copiado! Compartilhe com seus amigos.');
+    const btn = document.getElementById('share-site-btn');
+    if (btn) {
+      const originalText = btn.textContent;
+      btn.textContent = '✅ Copiado!';
+      btn.classList.add('success');
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.classList.remove('success');
+      }, 2000);
+    }
+  } catch (e) {
+    showToast(`📋 Copie o link: ${window.location.href}`);
+  }
+  
+  document.body.removeChild(textarea);
+}
+
+// 5. TOAST (feedback rápido)
+function showToast(message) {
+  const existing = document.querySelector('.toast-message');
+  if (existing) existing.remove();
+  
+  const toast = document.createElement('div');
+  toast.className = 'toast-message';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s';
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
+}
 
 // ==========================================================================
 // INICIALIZAÇÃO DA APLICAÇÃO
@@ -1199,4 +1420,21 @@ document.addEventListener('DOMContentLoaded', () => {
   updateHardcoreUI();
   showWelcomeModal();
   initTest();
+  
+  // Botão compartilhar site
+  const shareSiteBtn = document.getElementById('share-site-btn');
+  if (shareSiteBtn) {
+    shareSiteBtn.addEventListener('click', shareSite);
+  }
+  
+  // Botão modo contra-relógio
+  const timerModeBtn = document.getElementById('timer-mode-btn');
+  if (timerModeBtn) {
+    timerModeBtn.addEventListener('click', toggleTimerMode);
+  }
+  
+  // Renderizar histórico inicial
+  renderHistory();
+  const bestPPMVal = document.getElementById('best-ppm-val');
+  if (bestPPMVal) bestPPMVal.textContent = bestPPM;
 });
