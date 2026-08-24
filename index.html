@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Mestre da Digitação</title>
   <script>
-    (function() {
+    (function () {
       const savedTheme = localStorage.getItem('selectedTheme') || 'default';
       document.documentElement.setAttribute('data-theme', savedTheme);
     })();
@@ -19,10 +19,22 @@
 
   <main class="app-card">
     <header class="app-header zen-target">
-      <h1 class="logo-title">⌨️ Mestre da Digitação</h1>
+      <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px;">
+        <h1 class="logo-title" style="font-size:clamp(0.9rem, 3.5vw, 1.1rem);">⌨️ Mestre da Digitação</h1>
+        <div id="global-level-display">
+          <!-- preenchido via JS -->
+        </div>
+      </div>
       <div class="header-controls">
         <div class="control-group">
-          <label>Modo / Dificuldade</label>
+          <label>Modo de Jogo</label>
+          <button type="button" class="select-trigger" id="mode-trigger">
+            <span id="mode-trigger-text">📖 Padrão</span>
+            <span class="trigger-icon">▾</span>
+          </button>
+        </div>
+        <div class="control-group">
+          <label>Dificuldade</label>
           <button type="button" class="select-trigger" id="difficulty-trigger">
             <span id="difficulty-trigger-text">Fácil</span>
             <span class="trigger-icon">▾</span>
@@ -43,28 +55,29 @@
           </button>
         </div>
         <div class="control-group">
-          <label>Hardcore 🔥</label>
-          <div class="toggle-container" id="hardcore-toggle-wrapper">
-            <input type="checkbox" id="hardcore-toggle" class="toggle-checkbox">
-            <label for="hardcore-toggle" class="toggle-label">
-              <span class="toggle-inner"></span>
-              <span class="toggle-switch"></span>
-            </label>
-          </div>
-        </div>
-        <div class="control-group">
           <label>Troféus</label>
           <button type="button" class="select-trigger btn-achievements-trigger" id="achievements-trigger">
             <span>🏆 Conquistas</span>
           </button>
         </div>
+        <div class="control-group">
+          <label>Modo</label>
+          <button type="button" class="select-trigger" id="mode-help-trigger">
+            <span>❓ Como jogar</span>
+          </button>
+        </div>
+        <div class="control-group">
+          <label>Feedback</label>
+          <button type="button" class="select-trigger" id="feedback-trigger" style="justify-content:center;background:rgba(34,197,94,0.08);">
+            <span>💬 Enviar Feedback</span>
+          </button>
+        </div>
       </div>
     </header>
 
-    <!-- 1. MEDALHAS (PRIMEIRO) -->
+    <!-- MEDALHAS -->
     <section class="medals-box zen-target">
       <div class="medals-title" id="medals-title">🏅 Medalhas (Modo Padrão)</div>
-      
       <div class="medals-grid" id="standard-medals">
         <div class="medal-item" id="badge-accuracy">
           <span class="badge-counter" id="count-accuracy">0</span>
@@ -91,7 +104,6 @@
           <div class="medal-req" id="req-speed60">50+ PPM</div>
         </div>
       </div>
-
       <div class="medals-grid hidden" id="custom-medals">
         <div class="medal-item" id="badge-custom_first">
           <span class="badge-counter" id="count-custom_first">0</span>
@@ -120,7 +132,7 @@
       </div>
     </section>
 
-    <!-- 2. MÉTRICAS (SEGUNDO) -->
+    <!-- MÉTRICAS -->
     <section class="metrics-grid zen-target">
       <div class="metric-card">
         <button type="button" class="metric-info-btn" id="ppm-info-btn">
@@ -143,10 +155,19 @@
       </div>
     </section>
 
-    <!-- 3. BARRA DE PROGRESSO (TERCEIRO) -->
+    <!-- PAINEL DE DADOS EXCLUSIVO DO MODO -->
+    <section class="mode-dashboard zen-target" id="mode-dashboard" aria-live="polite">
+      <div class="mode-dashboard-header">
+        <span id="mode-dashboard-title">📖 Dados do modo</span>
+        <span class="mode-dashboard-live" id="mode-dashboard-live">Ao vivo</span>
+      </div>
+      <div class="mode-dashboard-grid" id="mode-dashboard-grid"></div>
+    </section>
+
+    <!-- BARRA DE PROGRESSO -->
     <div class="progress-container zen-target">
       <div class="progress-bar">
-        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
       </div>
       <div class="progress-info">
         <span id="progress-text">0 / 0 caracteres</span>
@@ -154,47 +175,44 @@
       </div>
     </div>
 
-    <!-- 4. ÁREA DE DIGITAÇÃO (QUARTO) -->
+    <!-- ÁREA DE DIGITAÇÃO -->
     <section class="typing-box" id="typing-box-container">
       <div class="typing-header-tags">
         <div class="difficulty-tag" id="difficulty-tag">Nível: Fácil</div>
-        <div class="hardcore-tag hidden" id="hardcore-tag">🔥 HARDCORE (0/3)</div>
         <div class="countdown-tag hidden" id="countdown-tag">⏱️ 30s</div>
+        <div class="mode-status-tag" id="mode-status-tag">📖 Padrão</div>
       </div>
       <div class="typing-wrapper">
-        <input 
-          type="text" 
-          id="hidden-input" 
-          name="typing_test_field_no_save"
-          autocomplete="off" 
-          autocorrect="off" 
-          autocapitalize="off" 
-          spellcheck="false" 
-          inputmode="text" 
-        />
+        <input type="text" id="hidden-input"
+        autocomplete="new-password"
+        autocorrect="off"
+        autocapitalize="none"
+        spellcheck="false"
+        inputmode="text"
+        enterkeyhint="done"
+        data-form-type="other"
+        aria-label="Área de digitação" />
         <div class="text-display" id="text-display" tabindex="0"></div>
         <small class="focus-hint" id="focus-hint">👆 Toque no quadro para abrir o teclado</small>
       </div>
-
       <div id="result-message" class="result-message hidden"></div>
-
       <div class="action-bar zen-target" id="action-bar">
-        <button id="restart-btn" class="btn-accent">↻ Nova Frase</button>
+        <button id="restart-btn" class="btn-accent">↻ Recomeçar</button>
+        <button id="rpg-continue-btn" class="btn-primary hidden" type="button">⚔️ Continuar Batalhando</button>
         <button id="edit-custom-btn" class="btn-secondary hidden">✏️ Alterar Texto</button>
-        <button id="share-site-btn" class="btn-secondary">📤 Compartilhar Site</button>
+        <button id="share-site-btn" class="btn-secondary">📤 Compartilhar</button>
         <button id="timer-mode-btn" class="btn-secondary">⏱️ Contra-Relógio</button>
+        <button id="tutorial-btn" class="btn-secondary" style="grid-column: span 2;" type="button">📖 Tutorial</button>
       </div>
     </section>
 
-    <!-- HISTÓRICO DE PPM -->
+    <!-- HISTÓRICO -->
     <section class="history-box zen-target" id="history-box">
       <div class="history-header">
         <span class="history-title">📊 Evolução do PPM</span>
         <span class="history-avg" id="history-avg">Média: 0</span>
       </div>
-      <div class="history-chart" id="history-chart">
-        <!-- Os pontos do gráfico serão gerados via JS -->
-      </div>
+      <div class="history-chart" id="history-chart"></div>
     </section>
 
     <footer class="app-footer zen-target">
@@ -202,21 +220,59 @@
     </footer>
   </main>
 
-  <!-- POPUP: AVISO E ALERTA HARDCORE -->
-  <div class="modal-overlay" id="modal-hardcore-info">
-    <div class="modal-card welcome-card">
-      <div class="welcome-icon" id="hardcore-modal-icon">🔥</div>
-      <h3 class="welcome-title" id="hardcore-modal-title">Modo Hardcore Ativado!</h3>
-      <p class="welcome-quote" id="hardcore-modal-text">
-        Neste modo você <strong>NÃO poderá apagar</strong> nenhum caractere digitado.
-        <br><br>
-        Para conseguir desativar o Modo Hardcore, você precisa completar <strong>3 fases consecutivas com 100% de precisão</strong>.
-      </p>
-      <button type="button" class="btn-primary" id="btn-hardcore-modal-close">Entendido!</button>
+  <!-- MODAL: TUTORIAL -->
+  <div class="modal-overlay" id="modal-welcome">
+    <div class="modal-card welcome-card tutorial-modal">
+      <div class="welcome-icon" id="tutorial-icon">⌨️</div>
+      <h3 class="welcome-title" id="tutorial-title">Bem-vindo ao Mestre da Digitação!</h3>
+      <div class="tutorial-slides">
+        <div class="tutorial-step active" data-step="0">
+          <p class="tutorial-text">Digite o texto que aparece no quadro preto. <br> <strong>A barra de progresso</strong> mostra quanto você já completou.</p>
+          <div class="tutorial-demo">📝 "O sol ilumina a manhã..."</div>
+        </div>
+        <div class="tutorial-step" data-step="1">
+          <p class="tutorial-text">Acompanhe sua <strong>velocidade (PPM)</strong> e <strong>precisão</strong> em tempo real. Quanto mais rápido e correto, melhor!</p>
+          <div class="tutorial-demo">⚡ 45 PPM &bull; 🎯 98%</div>
+        </div>
+        <div class="tutorial-step" data-step="2">
+          <p class="tutorial-text">Escolha entre <strong>11 modos de jogo</strong> únicos! Cada modo tem mecânicas diferentes e medalhas exclusivas.</p>
+          <div class="tutorial-demo">🔥 Fúria &bull; 💀 Sobrevivência &bull; 🎯 Sniper &bull; 🧩 WordHunt &bull; 💰 Cassino &bull; 🏃 Maratona &bull; 🧠 Memória &bull; 🌊 Onda &bull; ⚔️ RPG &bull; 🌈 Arco-Íris</div>
+        </div>
+        <div class="tutorial-step" data-step="3">
+          <p class="tutorial-text">Personalize <strong>Temas</strong>, <strong>Sons</strong> e desafie-se no <strong>Contra-Relógio</strong>.</p>
+          <div class="tutorial-demo">🎨 Temas &bull; 🔊 Sons &bull; ⏱️ Contra-Relógio</div>
+        </div>
+        <div class="tutorial-step" data-step="4">
+          <p class="tutorial-text">Cada modo tem suas próprias <strong>medalhas</strong> e <strong>histórico de PPM</strong>. Acumule conquistas e se torne um mestre!</p>
+          <div class="tutorial-demo">🏆 Medalhas &bull; 📊 Evolução &bull; 🎯 Conquistas</div>
+        </div>
+      </div>
+      <div class="tutorial-dots">
+        <span class="dot active" data-step="0"></span>
+        <span class="dot" data-step="1"></span>
+        <span class="dot" data-step="2"></span>
+        <span class="dot" data-step="3"></span>
+        <span class="dot" data-step="4"></span>
+      </div>
+      <div class="tutorial-nav">
+        <button type="button" class="btn-secondary" id="tutorial-prev" disabled>Anterior</button>
+        <button type="button" class="btn-primary" id="tutorial-next">Próximo</button>
+      </div>
     </div>
   </div>
 
-  <!-- POPUP: INFORMAÇÃO SOBRE PPM -->
+  <!-- MODAL: COMO JOGAR O MODO -->
+  <div class="modal-overlay" id="modal-mode-help">
+    <div class="modal-card welcome-card mode-help-modal">
+      <div class="welcome-icon" id="mode-help-icon">🎮</div>
+      <h3 class="welcome-title" id="mode-help-title">Como jogar</h3>
+      <p class="welcome-quote" id="mode-help-description"></p>
+      <div class="mode-help-rules" id="mode-help-rules"></div>
+      <button type="button" class="btn-primary" id="mode-help-close">Entendido!</button>
+    </div>
+  </div>
+
+  <!-- MODAL: PPM INFO -->
   <div class="modal-overlay" id="modal-ppm-info">
     <div class="modal-card">
       <div class="modal-header">
@@ -233,47 +289,51 @@
     </div>
   </div>
 
-  <!-- POPUP: DIFICULDADE / MODO -->
-  <div class="modal-overlay" id="modal-difficulty">
+  <!-- MODAL: CONFIRMAÇÃO DE RECOMEÇO -->
+  <div class="modal-overlay" id="modal-restart-confirm">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 class="modal-title">Selecione o Modo ou Dificuldade</h3>
-        <button type="button" class="modal-close" data-close="modal-difficulty">&times;</button>
+        <h3 class="modal-title">↻ Recomeçar partida?</h3>
+        <button type="button" class="modal-close" data-close="modal-restart-confirm">&times;</button>
       </div>
       <div class="modal-body">
-        <button type="button" class="modal-option-btn" data-value="easy">
-          <div class="option-info">
-            <span class="option-label">🌱 Fácil</span>
-            <span class="option-desc">Frases curtas e vocabulário simples</span>
-          </div>
-          <span class="option-check">✓</span>
-        </button>
-        <button type="button" class="modal-option-btn" data-value="medium">
-          <div class="option-info">
-            <span class="option-label">⚡ Médio</span>
-            <span class="option-desc">Frases de tamanho médio e variadas</span>
-          </div>
-          <span class="option-check">✓</span>
-        </button>
-        <button type="button" class="modal-option-btn" data-value="hard">
-          <div class="option-info">
-            <span class="option-label">🔥 Difícil</span>
-            <span class="option-desc">Frases longas com estrutura complexa</span>
-          </div>
-          <span class="option-check">✓</span>
-        </button>
-        <button type="button" class="modal-option-btn" data-value="custom">
-          <div class="option-info">
-            <span class="option-label">✍️ Personalizado</span>
-            <span class="option-desc">Cole o seu próprio texto para praticar</span>
-          </div>
-          <span class="option-check">✓</span>
-        </button>
+        <p style="margin:0 0 1.25rem; line-height:1.6;">Seu progresso atual nesta partida será perdido e o exercício será reiniciado. Essa ação não apaga seus recordes ou estatísticas salvas.</p>
+        <div style="display:flex; gap:.75rem; justify-content:flex-end; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" id="cancel-restart-btn">Cancelar</button>
+          <button type="button" class="btn-accent" id="confirm-restart-btn">↻ Recomeçar</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- POPUP: CONFIGURAÇÕES DE SOM -->
+  <!-- MODAL: DIFICULDADE -->
+  <div class="modal-overlay" id="modal-difficulty">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Selecione a Dificuldade</h3>
+        <button type="button" class="modal-close" data-close="modal-difficulty">&times;</button>
+      </div>
+      <div class="modal-body">
+        <button type="button" class="modal-option-btn" data-value="easy"><div class="option-info"><span class="option-label">🌱 Fácil</span><span class="option-desc">Frases curtas e vocabulário simples</span></div><span class="option-check">✓</span></button>
+        <button type="button" class="modal-option-btn" data-value="medium"><div class="option-info"><span class="option-label">⚡ Médio</span><span class="option-desc">Frases de tamanho médio e variadas</span></div><span class="option-check">✓</span></button>
+        <button type="button" class="modal-option-btn" data-value="hard"><div class="option-info"><span class="option-label">🔥 Difícil</span><span class="option-desc">Frases longas com estrutura complexa</span></div><span class="option-check">✓</span></button>
+        <button type="button" class="modal-option-btn" data-value="custom"><div class="option-info"><span class="option-label">✍️ Personalizado</span><span class="option-desc">Cole o seu próprio texto para praticar</span></div><span class="option-check">✓</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: MODOS -->
+  <div class="modal-overlay" id="modal-modes">
+    <div class="modal-card modal-card-scrollable">
+      <div class="modal-header">
+        <h3 class="modal-title">🎮 Selecione o Modo de Jogo</h3>
+        <button type="button" class="modal-close" data-close="modal-modes">&times;</button>
+      </div>
+      <div class="modal-body" id="modes-list"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: SOM -->
   <div class="modal-overlay" id="modal-sound">
     <div class="modal-card">
       <div class="modal-header">
@@ -281,47 +341,24 @@
         <button type="button" class="modal-close" data-close="modal-sound">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="volume-control-group" style="margin-bottom: 1.25rem;">
-          <label for="volume-slider" style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem;">Volume Mestre</label>
-          <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.7" style="width: 100%;">
+        <div class="volume-control-group" style="margin-bottom:1.25rem;">
+          <label for="volume-slider" style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:0.5rem;">Volume Mestre</label>
+          <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.9" style="width:100%;">
         </div>
-
-        <div class="category-header" style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.75rem;">Perfil Sonoro</div>
-        <button type="button" class="modal-option-btn" data-value="thock">
-          <div class="option-info">
-            <span class="option-label">🎹 Thock Mecânico</span>
-          </div>
-          <span class="option-check">✓</span>
-        </button>
-        <button type="button" class="modal-option-btn" data-value="pop">
-          <div class="option-info">
-            <span class="option-label">🫧 Pop Suave</span>
-          </div>
-          <span class="option-check">✓</span>
-        </button>
-        <button type="button" class="modal-option-btn" data-value="retro">
-          <div class="option-info">
-            <span class="option-label">🕹️ Retrô Cyber 80s</span>
-          </div>
-          <span class="option-check">✓</span>
-        </button>
-        <button type="button" class="modal-option-btn" data-value="typewriter">
-          <div class="option-info">
-            <span class="option-label">📜 Máquina de Escrever</span>
-          </div>
-          <span class="option-check">✓</span>
-        </button>
-        <button type="button" class="modal-option-btn" data-value="silent">
-          <div class="option-info">
-            <span class="option-label">🔇 Silencioso / Muto</span>
-          </div>
-          <span class="option-check">✓</span>
-        </button>
+        <div class="category-header" style="font-size:0.85rem;font-weight:600;margin-bottom:0.75rem;">Perfil Sonoro (clique em ▶️ para ouvir)</div>
+        <button type="button" class="modal-option-btn" data-value="thock"><div class="option-info"><span class="option-label">🎹 Thock Mecânico</span></div><span class="option-check">✓</span><span class="sound-preview-btn" data-value="thock">▶️</span></button>
+        <button type="button" class="modal-option-btn" data-value="pop"><div class="option-info"><span class="option-label">🫧 Pop Suave</span></div><span class="option-check">✓</span><span class="sound-preview-btn" data-value="pop">▶️</span></button>
+        <button type="button" class="modal-option-btn" data-value="retro"><div class="option-info"><span class="option-label">🕹️ Retrô Cyber 80s</span></div><span class="option-check">✓</span><span class="sound-preview-btn" data-value="retro">▶️</span></button>
+        <button type="button" class="modal-option-btn" data-value="typewriter"><div class="option-info"><span class="option-label">📜 Máquina de Escrever</span></div><span class="option-check">✓</span><span class="sound-preview-btn" data-value="typewriter">▶️</span></button>
+        <button type="button" class="modal-option-btn" data-value="clack"><div class="option-info"><span class="option-label">🔊 Clack Seco</span></div><span class="option-check">✓</span><span class="sound-preview-btn" data-value="clack">▶️</span></button>
+        <button type="button" class="modal-option-btn" data-value="deep"><div class="option-info"><span class="option-label">🎵 Deep Grave</span></div><span class="option-check">✓</span><span class="sound-preview-btn" data-value="deep">▶️</span></button>
+        <button type="button" class="modal-option-btn" data-value="clicky"><div class="option-info"><span class="option-label">🖱️ Clicky Preciso</span></div><span class="option-check">✓</span><span class="sound-preview-btn" data-value="clicky">▶️</span></button>
+        <button type="button" class="modal-option-btn" data-value="silent"><div class="option-info"><span class="option-label">🔇 Silencioso / Muto</span></div><span class="option-check">✓</span><span class="sound-preview-btn" data-value="silent">🔇</span></button>
       </div>
     </div>
   </div>
 
-  <!-- POPUP: TEXTO PERSONALIZADO -->
+  <!-- MODAL: TEXTO PERSONALIZADO -->
   <div class="modal-overlay" id="modal-custom-text">
     <div class="modal-card">
       <div class="modal-header">
@@ -335,8 +372,8 @@
       </div>
     </div>
   </div>
-  
-  <!-- POPUP: TEMAS VISUAIS -->
+
+  <!-- MODAL: TEMAS -->
   <div class="modal-overlay" id="modal-theme">
     <div class="modal-card modal-card-scrollable">
       <div class="modal-header">
@@ -344,96 +381,34 @@
         <button type="button" class="modal-close" data-close="modal-theme">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="theme-category">
-          <div class="category-header">🌙 Modos Escuros</div>
-          <button type="button" class="modal-option-btn" data-value="default">
-            <div class="option-info"><span class="option-label">🌊 Azul Marinho</span><span class="option-desc">Elegância clássica</span></div>
-            <span class="option-check">✓</span>
-          </button>
-          <button type="button" class="modal-option-btn" data-value="dracula">
-            <div class="option-info"><span class="option-label">🔮 Dracula Cyber</span><span class="option-desc">Neon para devs</span></div>
-            <span class="option-check">✓</span>
-          </button>
-          <button type="button" class="modal-option-btn" data-value="midnight">
-            <div class="option-info"><span class="option-label">🌌 Meia-Noite Roxo</span><span class="option-desc">Tons profundos</span></div>
-            <span class="option-check">✓</span>
-          </button>
-          <button type="button" class="modal-option-btn" data-value="charcoal">
-            <div class="option-info"><span class="option-label">🖤 Carvão Minimalista</span><span class="option-desc">Focado e limpo</span></div>
-            <span class="option-check">✓</span>
-          </button>
-          <button type="button" class="modal-option-btn" data-value="nordic-dark">
-            <div class="option-info"><span class="option-label">❄️ Nórdico Escuro</span><span class="option-desc">Cores sóbrias</span></div>
-            <span class="option-check">✓</span>
-          </button>
+        <div class="theme-category"><div class="category-header">🌙 Modos Escuros</div>
+          <button type="button" class="modal-option-btn" data-value="default"><div class="option-info"><span class="option-label">🌊 Azul Marinho</span><span class="option-desc">Elegância clássica</span></div><span class="option-check">✓</span></button>
+          <button type="button" class="modal-option-btn" data-value="dracula"><div class="option-info"><span class="option-label">🔮 Dracula Cyber</span><span class="option-desc">Neon para devs</span></div><span class="option-check">✓</span></button>
+          <button type="button" class="modal-option-btn" data-value="midnight"><div class="option-info"><span class="option-label">🌌 Meia-Noite Roxo</span><span class="option-desc">Tons profundos</span></div><span class="option-check">✓</span></button>
+          <button type="button" class="modal-option-btn" data-value="charcoal"><div class="option-info"><span class="option-label">🖤 Carvão Minimalista</span><span class="option-desc">Focado e limpo</span></div><span class="option-check">✓</span></button>
+          <button type="button" class="modal-option-btn" data-value="nordic-dark"><div class="option-info"><span class="option-label">❄️ Nórdico Escuro</span><span class="option-desc">Cores sóbrias</span></div><span class="option-check">✓</span></button>
         </div>
-
-        <div class="theme-category">
-          <div class="category-header">☀️ Modos Claros</div>
-          <button type="button" class="modal-option-btn" data-value="light">
-            <div class="option-info"><span class="option-label">🥛 Claro Clean</span><span class="option-desc">Interface limpa</span></div>
-            <span class="option-check">✓</span>
-          </button>
-          <button type="button" class="modal-option-btn" data-value="paper">
-            <div class="option-info"><span class="option-label">📜 Papel Sépia</span><span class="option-desc">Estilo livro clássico</span></div>
-            <span class="option-check">✓</span>
-          </button>
-          <button type="button" class="modal-option-btn" data-value="pastel">
-            <div class="option-info"><span class="option-label">🌸 Soft Pastel</span><span class="option-desc">Tons suaves</span></div>
-            <span class="option-check">✓</span>
-          </button>
-          <button type="button" class="modal-option-btn" data-value="nordic-light">
-            <div class="option-info"><span class="option-label">🏔️ Nórdico Claro</span><span class="option-desc">Estética fria</span></div>
-            <span class="option-check">✓</span>
-          </button>
+        <div class="theme-category"><div class="category-header">☀️ Modos Claros</div>
+          <button type="button" class="modal-option-btn" data-value="light"><div class="option-info"><span class="option-label">🥛 Claro Clean</span><span class="option-desc">Interface limpa</span></div><span class="option-check">✓</span></button>
+          <button type="button" class="modal-option-btn" data-value="paper"><div class="option-info"><span class="option-label">📜 Papel Sépia</span><span class="option-desc">Estilo livro clássico</span></div><span class="option-check">✓</span></button>
+          <button type="button" class="modal-option-btn" data-value="pastel"><div class="option-info"><span class="option-label">🌸 Soft Pastel</span><span class="option-desc">Tons suaves</span></div><span class="option-check">✓</span></button>
+          <button type="button" class="modal-option-btn" data-value="nordic-light"><div class="option-info"><span class="option-label">🏔️ Nórdico Claro</span><span class="option-desc">Estética fria</span></div><span class="option-check">✓</span></button>
         </div>
-
-        <div class="theme-category">
-          <div class="category-header">📻 Retrô & Terminal</div>
-          <button type="button" class="modal-option-btn" data-value="amber">
-            <div class="option-info"><span class="option-label">📻 Amber Retrô</span><span class="option-desc">Fósforo âmbar dos anos 80</span></div>
-            <span class="option-check">✓</span>
-          </button>
-          <button type="button" class="modal-option-btn" data-value="matrix">
-            <div class="option-info"><span class="option-label">📟 Matrix Terminal</span><span class="option-desc">Verde hacker</span></div>
-            <span class="option-check">✓</span>
-          </button>
-          <button type="button" class="modal-option-btn" data-value="terminal-blue">
-            <div class="option-info"><span class="option-label">💻 IBM Blue Terminal</span><span class="option-desc">Telas azuis corporativas</span></div>
-            <span class="option-check">✓</span>
-          </button>
+        <div class="theme-category"><div class="category-header">📻 Retrô & Terminal</div>
+          <button type="button" class="modal-option-btn" data-value="amber"><div class="option-info"><span class="option-label">📻 Amber Retrô</span><span class="option-desc">Fósforo âmbar dos anos 80</span></div><span class="option-check">✓</span></button>
+          <button type="button" class="modal-option-btn" data-value="matrix"><div class="option-info"><span class="option-label">📟 Matrix Terminal</span><span class="option-desc">Verde hacker</span></div><span class="option-check">✓</span></button>
+          <button type="button" class="modal-option-btn" data-value="terminal-blue"><div class="option-info"><span class="option-label">💻 IBM Blue Terminal</span><span class="option-desc">Telas azuis corporativas</span></div><span class="option-check">✓</span></button>
         </div>
-
-        <div class="theme-category">
-          <div class="category-header">🎨 Vibrantes & Natureza</div>
-          <button type="button" class="modal-option-btn" data-value="synthwave">
-            <div class="option-info"><span class="option-label">🌆 Synthwave 80s</span><span class="option-desc">Degradê vibrante</span></div>
-            <span class="option-check">✓</span>
-          </button>
-          <button type="button" class="modal-option-btn" data-value="sunset">
-            <div class="option-info"><span class="option-label">🌅 Pôr do Sol</span><span class="option-desc">Tons quentes</span></div>
-            <span class="option-check">✓</span>
-          </button>
-          <button type="button" class="modal-option-btn" data-value="emerald">
-            <div class="option-info"><span class="option-label">🌲 Floresta Esmeralda</span><span class="option-desc">Tons orgânicos</span></div>
-            <span class="option-check">✓</span>
-          </button>
+        <div class="theme-category"><div class="category-header">🎨 Vibrantes & Natureza</div>
+          <button type="button" class="modal-option-btn" data-value="synthwave"><div class="option-info"><span class="option-label">🌆 Synthwave 80s</span><span class="option-desc">Degradê vibrante</span></div><span class="option-check">✓</span></button>
+          <button type="button" class="modal-option-btn" data-value="sunset"><div class="option-info"><span class="option-label">🌅 Pôr do Sol</span><span class="option-desc">Tons quentes</span></div><span class="option-check">✓</span></button>
+          <button type="button" class="modal-option-btn" data-value="emerald"><div class="option-info"><span class="option-label">🌲 Floresta Esmeralda</span><span class="option-desc">Tons orgânicos</span></div><span class="option-check">✓</span></button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- POPUP: BOAS-VINDAS -->
-  <div class="modal-overlay" id="modal-welcome">
-    <div class="modal-card welcome-card">
-      <div class="welcome-icon">✨</div>
-      <h3 class="welcome-title" id="welcome-greeting">Bem-vindo(a)!</h3>
-      <p class="welcome-quote" id="welcome-quote-text">"Sua única limitação é você mesmo."</p>
-      <button type="button" class="btn-primary" id="btn-start-session">Vamos Começar!</button>
-    </div>
-  </div>
-
-  <!-- POPUP: CONQUISTAS -->
+  <!-- MODAL: CONQUISTAS -->
   <div class="modal-overlay" id="modal-achievements">
     <div class="modal-card modal-card-scrollable modal-card-wide">
       <div class="modal-header">
@@ -446,6 +421,6 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
