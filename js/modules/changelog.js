@@ -1,4 +1,7 @@
 // js/modules/changelog.js
+const CHANGELOG_VERSION = 'auditoria-2026-08-25';
+const CHANGELOG_SEEN_KEY = 'mestre_changelog_seen_version';
+
 const CHANGELOG = [
   { version: 'Auditoria atual', date: 'Agosto de 2026', items: [
     '🧩 Caça-Palavras: erros agora são contabilizados e há feedback imediato.',
@@ -18,6 +21,7 @@ const CHANGELOG = [
 
 function buildChangelog() {
   if (document.getElementById('changelog-modal')) return;
+
   const style = document.createElement('style');
   style.id = 'changelog-style';
   style.textContent = `
@@ -30,21 +34,32 @@ function buildChangelog() {
     #changelog-modal .changelog-footer{font-size:.78rem;color:var(--text-muted);margin-top:12px}
   `;
   document.head.appendChild(style);
-  const modal=document.createElement('div');
-  modal.id='changelog-modal';modal.className='modal-overlay';
-  modal.innerHTML=`<div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="changelog-title"><div class="modal-header"><h3 class="modal-title" id="changelog-title">🆕 O que mudou?</h3><button type="button" class="modal-close" aria-label="Fechar">&times;</button></div><div class="modal-body"><p>Veja as melhorias e correções mais recentes do Mestre da Digitação.</p><div class="changelog-list"></div><div class="changelog-footer">As novidades aparecem aqui para você saber o que mudou sem precisar conhecer o código.</div></div></div>`;
+
+  const modal = document.createElement('div');
+  modal.id = 'changelog-modal';
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `<div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="changelog-title"><div class="modal-header"><h3 class="modal-title" id="changelog-title">🆕 O que mudou?</h3><button type="button" class="modal-close" aria-label="Fechar">&times;</button></div><div class="modal-body"><p>Veja as melhorias e correções mais recentes do Mestre da Digitação.</p><div class="changelog-list"></div><div class="changelog-footer">As novidades aparecem aqui para você saber o que mudou sem precisar conhecer o código.</div></div></div>`;
   document.body.appendChild(modal);
-  modal.querySelector('.changelog-list').innerHTML=CHANGELOG.map(section=>`<section><div class="changelog-version">${section.version}<span class="changelog-date">${section.date}</span></div>${section.items.map(item=>`<div class="changelog-item">${item}</div>`).join('')}</section>`).join('');
-  const close=()=>modal.classList.remove('active');
-  modal.querySelector('.modal-close').addEventListener('click',close);
-  modal.addEventListener('click',e=>{if(e.target===modal)close();});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
-  const controls=document.querySelector('.header-controls');
-  if(controls){
-    const group=document.createElement('div');group.className='control-group';
-    group.innerHTML=`<label>Novidades</label><button type="button" class="select-trigger" id="changelog-trigger"><span>🆕 O que mudou?</span><span class="new-dot" aria-label="Novidades"></span></button>`;
+  modal.querySelector('.changelog-list').innerHTML = CHANGELOG.map(section => `<section><div class="changelog-version">${section.version}<span class="changelog-date">${section.date}</span></div>${section.items.map(item => `<div class="changelog-item">${item}</div>`).join('')}</section>`).join('');
+
+  const close = () => modal.classList.remove('active');
+  modal.querySelector('.modal-close').addEventListener('click', close);
+  modal.addEventListener('click', e => { if (e.target === modal) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+
+  const controls = document.querySelector('.header-controls');
+  if (controls) {
+    const group = document.createElement('div');
+    group.className = 'control-group';
+    const unseen = localStorage.getItem(CHANGELOG_SEEN_KEY) !== CHANGELOG_VERSION;
+    group.innerHTML = `<label>Novidades</label><button type="button" class="select-trigger" id="changelog-trigger"><span>🆕 O que mudou?</span>${unseen ? '<span class="new-dot" aria-label="Novidades"></span>' : ''}</button>`;
     controls.appendChild(group);
-    group.querySelector('button').addEventListener('click',()=>{modal.classList.add('active');localStorage.setItem('mestre_changelog_seen','1');group.querySelector('.new-dot')?.remove();});
+    group.querySelector('button').addEventListener('click', () => {
+      modal.classList.add('active');
+      localStorage.setItem(CHANGELOG_SEEN_KEY, CHANGELOG_VERSION);
+      group.querySelector('.new-dot')?.remove();
+    });
   }
 }
-export function setupChangelog(){buildChangelog();}
+
+export function setupChangelog() { buildChangelog(); }
