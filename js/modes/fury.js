@@ -38,7 +38,6 @@ export default {
     this.streak = 0;
     this.maxStreak = 0;
     this.furyLevel = 0;
-    // A sessão começa apenas na primeira tecla, não ao entrar no modo.
     this.startTime = null;
 
     this.render(text);
@@ -75,7 +74,7 @@ export default {
   updateUI() {
     const tag = document.getElementById('mode-status-tag');
     if (tag) {
-      tag.innerHTML = `🔥 Streak: ${this.streak} | Nível ${this.furyLevel} (⏱️ ${this.targetPPM} PPM)`;
+      tag.innerHTML = `🔥 Streak: ${this.streak} | Nível ${this.furyLevel} (🎯 ${this.targetPPM} PPM)`;
     }
   },
 
@@ -83,7 +82,6 @@ export default {
     const text = state.currentText;
     if (!text) return { done: false, playError: false };
 
-    // O primeiro caractere é o início real da sessão.
     if (!this.startTime && value.length > 0) this.startTime = performance.now();
 
     const prevLen = this.typed.length;
@@ -117,7 +115,6 @@ export default {
     if (ppmEl) ppmEl.textContent = wpm;
     state.currentPPM = wpm;
 
-    // Lógica da Fúria
     const lastChar = chars[chars.length - 1];
     const lastTarget = text[chars.length - 1];
     if (chars.length > prevLen && chars.length > 0) {
@@ -130,7 +127,7 @@ export default {
           const msg = document.getElementById('result-message');
           if (msg) {
             msg.className = 'result-message success';
-            msg.innerHTML = `⚡ Fúria Nível ${this.furyLevel}! PPM alvo: ${this.targetPPM}`;
+            msg.innerHTML = `⚡ Fúria Nível ${this.furyLevel}! Nova meta: ${this.targetPPM} PPM`;
             msg.classList.remove('hidden');
             setTimeout(() => msg.classList.add('hidden'), 1500);
           }
@@ -157,8 +154,9 @@ export default {
     this.streak = 0;
     this.maxStreak = 0;
     this.furyLevel = 0;
-    this.basePPM = 20;
-    this.targetPPM = 20;
+    // Não sobrescreva a configuração da dificuldade atual.
+    // init() é o único lugar responsável por carregar os parâmetros da dificuldade.
+    this.targetPPM = this.basePPM;
   },
 
   checkMedals(accuracy, wpm) {
