@@ -59,11 +59,7 @@ function startTimer() {
   state.isRunning = true;
   state.startTime = performance.now();
   const mode = getModeHandler();
-  // O modo e o núcleo usam exatamente o instante da primeira tecla.
-  // Isso evita contar o tempo passado parado na tela antes de começar.
-  if (mode && Object.prototype.hasOwnProperty.call(mode, 'startTime')) {
-    mode.startTime = state.startTime;
-  }
+  if (mode && Object.prototype.hasOwnProperty.call(mode, 'startTime')) mode.startTime = state.startTime;
   clearInterval(state.timerInterval);
   state.timerInterval = setInterval(() => {
     const sec = getElapsedSeconds();
@@ -75,9 +71,7 @@ function startTimer() {
         ppmVal.textContent = metrics.wpm;
         state.currentPPM = metrics.wpm;
       }
-      if (metrics && metrics.accuracy !== undefined) {
-        accuracyVal.textContent = `${metrics.accuracy}%`;
-      }
+      if (metrics && metrics.accuracy !== undefined) accuracyVal.textContent = `${metrics.accuracy}%`;
       renderModeDashboard();
     }
   }, 1000);
@@ -114,12 +108,13 @@ export function endTest(finalAccuracy, finalWpm, modeId) {
   let xpGain = Math.round((wpm * 2) + (accuracy * 0.5));
   if (accuracy === 100) xpGain += 20;
   if (xpGain < 5) xpGain = 5;
-  addGlobalXP(xpGain);
+  const typedChars = Math.max(0, Number(mode?.typed?.length || state.totalTyped || 0));
+  addGlobalXP(xpGain, typedChars);
 
   updatePPMHistory(id, wpm);
   const modeStats = getModeStats(id);
   modeStats.rounds = (modeStats.rounds || 0) + 1;
-  modeStats.totalTyped = (modeStats.totalTyped || 0) + (mode?.typed?.length || state.totalTyped || 0);
+  modeStats.totalTyped = (modeStats.totalTyped || 0) + typedChars;
   modeStats.bestPPM = Math.max(modeStats.bestPPM || 0, Number(wpm) || 0);
   modeStats.bestAccuracy = Math.max(modeStats.bestAccuracy || 0, Number(accuracy) || 0);
   modeStats.bestTime = modeStats.bestTime == null ? finalTime : Math.min(modeStats.bestTime, finalTime);
@@ -194,7 +189,6 @@ export function initTest() {
 
   if (mode && mode.init) {
     mode.init(state.currentText);
-    // Preparar o modo não inicia a sessão. O relógio começa na primeira tecla.
     if (Object.prototype.hasOwnProperty.call(mode, 'startTime')) mode.startTime = null;
   } else {
     textDisplay.innerHTML = state.currentText.split('').map(ch => `<span class="char">${ch}</span>`).join('');
