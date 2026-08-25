@@ -38,7 +38,8 @@ export default {
     this.streak = 0;
     this.maxStreak = 0;
     this.furyLevel = 0;
-    this.startTime = performance.now();
+    // A sessão começa apenas na primeira tecla, não ao entrar no modo.
+    this.startTime = null;
 
     this.render(text);
     this.resetInput();
@@ -56,15 +57,19 @@ export default {
   },
 
   resetInput() {
-    document.getElementById('hidden-input').value = '';
+    const input = document.getElementById('hidden-input');
+    if (input) input.value = '';
   },
 
   updateProgress(typed) {
-    const total = state.currentText.length;
+    const total = state.currentText.length || 1;
     const percent = Math.min(100, Math.round((typed / total) * 100));
-    document.getElementById('progress-fill').style.width = `${percent}%`;
-    document.getElementById('progress-text').textContent = `${typed} / ${total} caracteres`;
-    document.getElementById('progress-percent').textContent = `${percent}%`;
+    const fill = document.getElementById('progress-fill');
+    const text = document.getElementById('progress-text');
+    const percentEl = document.getElementById('progress-percent');
+    if (fill) fill.style.width = `${percent}%`;
+    if (text) text.textContent = `${typed} / ${state.currentText.length} caracteres`;
+    if (percentEl) percentEl.textContent = `${percent}%`;
   },
 
   updateUI() {
@@ -76,6 +81,11 @@ export default {
 
   handleInput(value) {
     const text = state.currentText;
+    if (!text) return { done: false, playError: false };
+
+    // O primeiro caractere é o início real da sessão.
+    if (!this.startTime && value.length > 0) this.startTime = performance.now();
+
     const prevLen = this.typed.length;
     this.typed = value;
     const chars = value.split('');
@@ -98,11 +108,13 @@ export default {
     this.updateProgress(chars.length);
 
     const accuracy = chars.length > 0 ? Math.round(((chars.length - errors) / chars.length) * 100) : 100;
-    document.getElementById('accuracy-val').textContent = `${accuracy}%`;
+    const accuracyEl = document.getElementById('accuracy-val');
+    if (accuracyEl) accuracyEl.textContent = `${accuracy}%`;
 
-    const elapsed = Math.max(1, Math.floor((performance.now() - this.startTime) / 1000));
-    let wpm = Math.round((chars.length / 5) / (elapsed / 60));
-    document.getElementById('ppm-val').textContent = wpm;
+    const elapsed = this.startTime ? Math.max(0.001, (performance.now() - this.startTime) / 1000) : 0.001;
+    const wpm = Math.round((chars.length / 5) / (elapsed / 60));
+    const ppmEl = document.getElementById('ppm-val');
+    if (ppmEl) ppmEl.textContent = wpm;
     state.currentPPM = wpm;
 
     // Lógica da Fúria
@@ -115,7 +127,6 @@ export default {
         if (this.streak % this.streakThreshold === 0) {
           this.furyLevel++;
           this.targetPPM += this.speedIncrement;
-          // Notifica o aumento
           const msg = document.getElementById('result-message');
           if (msg) {
             msg.className = 'result-message success';
@@ -127,12 +138,11 @@ export default {
       } else {
         this.streak = 0;
         this.furyLevel = 0;
-        this.targetPPM = this.basePPM; // volta ao alvo base da dificuldade
+        this.targetPPM = this.basePPM;
       }
       this.updateUI();
     }
 
-    // Verifica se completou a frase
     if (chars.length >= text.length) {
       return { done: true, accuracy, wpm, playError: false };
     }
@@ -159,7 +169,7 @@ export default {
   getMetrics() {
     const chars = this.typed.length;
     const accuracy = chars > 0 ? Math.round(((chars - this.errors) / chars) * 100) : 100;
-    const elapsed = Math.max(1, Math.floor((performance.now() - this.startTime) / 1000));
+    const elapsed = this.startTime ? Math.max(0.001, (performance.now() - this.startTime) / 1000) : 0.001;
     const wpm = Math.round((chars / 5) / (elapsed / 60));
     return { accuracy, wpm };
   },
