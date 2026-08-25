@@ -35,6 +35,7 @@ export default {
   monster: null,
   typed: '',
   errors: 0,
+  totalErrors: 0,
   startTime: null,
   totalCorrect: 0,
   battleOver: false,
@@ -74,12 +75,14 @@ export default {
 
     this.typed = '';
     this.errors = 0;
+    this.totalErrors = 0;
     this.totalCorrect = 0;
+    // O núcleo define o início real na primeira tecla.
+    this.startTime = null;
     this.battleOver = false;
     this.combo = 0;
     this.maxCombo = 0;
     this.battleCount = parseInt(localStorage.getItem('rpg_battleCount')) || 0;
-    this.startTime = performance.now();
 
     this.spawnMonster(config);
     this.resetInput();
@@ -142,7 +145,7 @@ export default {
     if (input) input.value = '';
     this.typed = '';
     this.errors = 0;
-    this.startTime = performance.now();
+    // Não reinicia o relógio aqui: trocar a frase faz parte da mesma batalha.
     this.updateProgress(0);
     const accuracy = document.getElementById('accuracy-val');
     if (accuracy) accuracy.textContent = '100%';
@@ -271,12 +274,15 @@ export default {
       }
     });
     this.errors = errors;
+    const addedErrors = Math.max(0, errors - (this._lastErrorCount || 0));
+    if (addedErrors > 0) this.totalErrors += addedErrors;
+    this._lastErrorCount = errors;
     this.updateProgress(chars.length);
 
     const accuracy = chars.length > 0 ? Math.round(((chars.length - errors) / chars.length) * 100) : 100;
     document.getElementById('accuracy-val').textContent = `${accuracy}%`;
 
-    const elapsed = Math.max(1, Math.floor((performance.now() - this.startTime) / 1000));
+    const elapsed = Math.max(1, Math.floor((performance.now() - (state.startTime || performance.now())) / 1000));
     const wpm = Math.round((chars.length / 5) / (elapsed / 60));
     document.getElementById('ppm-val').textContent = wpm;
     state.currentPPM = wpm;
@@ -407,8 +413,8 @@ export default {
     this.comboBonus = 0;
     this.typed = '';
     this.errors = 0;
-    this.totalCorrect = 0;
-    this.startTime = performance.now();
+    this.totalErrors = 0;
+    this.startTime = null;
     this.playerHP = this.player.maxHp;
     this.maxPlayerHP = this.player.maxHp;
     const diff = state.currentDifficulty;
@@ -432,11 +438,11 @@ export default {
   },
 
   getMetrics() {
-    const chars = this.typed.length;
-    const accuracy = chars > 0 ? Math.round(((chars - this.errors) / chars) * 100) : 100;
-    const elapsed = Math.max(1, Math.floor((performance.now() - this.startTime) / 1000));
+    const chars = Math.max(0, Number(state.totalTyped) || 0);
+    const accuracy = chars > 0 ? Math.round(((chars - this.totalErrors) / chars) * 100) : 100;
+    const elapsed = Math.max(1, Math.floor((performance.now() - (state.startTime || performance.now())) / 1000));
     const wpm = Math.round((chars / 5) / (elapsed / 60));
-    return { accuracy, wpm };
+    return { accuracy: Math.max(0, accuracy), wpm };
   },
 
   getResultMessage(accuracy, wpm) {
