@@ -55,7 +55,6 @@ function dashboardData(id,mode,stats){
     case'marathon':return[`${mode.timeLeft}s`,mode.wordsTyped,mode.wordsTyped>0?Math.round(mode.wordsTyped/Math.max(1,(mode.timeLimit-mode.timeLeft)/60)):0,mode.errors];
     case'memory':return[`${mode.displayTime}s`,mode.typed.length,mode.errors,stats.bestPPM||0];
     case'wave':return[mode.waveIndex,mode.totalWords,`${Math.ceil(mode.timeLeft||0)}s`,mode.errors];
-    // O combate usa playerHP como vida atual; player.hp é o HP persistido/base.
     case'rpg':return[`Lv.${mode.player.level}`,`${mode.player.xp}/${mode.player.xpToNext}`,`${mode.playerHP}/${mode.maxPlayerHP}`,mode.player.attack];
     case'rainbow':return[`${mode.painted}/${mode.typed.length||0}`,mode.colors.length,mode.typed.length,mode.errors];
     default:return generic;
@@ -74,15 +73,48 @@ export function renderModeDashboard(){
   grid.innerHTML=labels.map((label,i)=>`<div class="mode-data-card"><span class="mode-data-label">${label}</span><span class="mode-data-value">${values[i]??'—'}</span></div>`).join('');
 }
 
+function cleanupModeTransition(){
+  clearInterval(state.timerInterval);
+  clearInterval(state.timerModeInterval);
+  clearTimeout(state.autoRestartTimeout);
+  state.timerInterval=null;
+  state.timerModeInterval=null;
+  state.autoRestartTimeout=null;
+  state.isRunning=false;
+  state._ending=false;
+
+  const input=document.getElementById('hidden-input');
+  if(input){input.value='';input.disabled=true;}
+  const result=document.getElementById('result-message');
+  if(result){result.classList.add('hidden');result.innerHTML='';}
+  const countdown=document.getElementById('countdown-tag');
+  if(countdown){countdown.classList.add('hidden');countdown.classList.remove('warning');}
+  const progressFill=document.getElementById('progress-fill');
+  const progressText=document.getElementById('progress-text');
+  const progressPercent=document.getElementById('progress-percent');
+  if(progressFill)progressFill.style.width='0%';
+  if(progressText)progressText.textContent='0 / 0 caracteres';
+  if(progressPercent)progressPercent.textContent='0%';
+  const timer=document.getElementById('timer-val');
+  const ppm=document.getElementById('ppm-val');
+  const accuracy=document.getElementById('accuracy-val');
+  if(timer)timer.textContent='0s';
+  if(ppm)ppm.textContent='0';
+  if(accuracy)accuracy.textContent='100%';
+}
+
 export function setMode(id,{restart=true}={}){
-  if(!MODES[id])return;
+  if(!MODES[id] || id===currentModeId && !restart)return;
   if(currentMode&&currentMode.destroy)currentMode.destroy();
+  cleanupModeTransition();
   if(state.isTimerMode)disableTimerMode();
+
   const newMode=MODES[id];
   currentModeId=id;
   currentMode=newMode;
   state.currentModeId=id;
   localStorage.setItem('selectedGameMode',id);
+
   const modeTrigger=document.getElementById('mode-trigger-text');
   if(modeTrigger)modeTrigger.textContent=MODE_NAMES[id]||id;
   const modeStatusTag=document.getElementById('mode-status-tag');
