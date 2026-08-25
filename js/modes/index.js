@@ -44,17 +44,17 @@ export const MODE_NAMES = {
 };
 
 const MODE_DESCRIPTIONS = {
-  default: 'Modo clássico, digite frases e ganhe medalhas.',
-  fury: 'A cada 10 caracteres corretos, a velocidade aumenta. Erros resetam o streak.',
-  survival: 'Cada caractere tem tempo de vida. Se expirar, perde uma vida.',
-  sniper: 'Erros custam caro: volte caracteres e reinicie se errar demais.',
-  wordhunt: 'Palavras embaralhadas, digite a forma correta para avançar.',
-  casino: 'Aposte fichas na sua precisão. Ganhe ou perca com base no resultado.',
-  marathon: 'Digite o máximo de palavras em 60 segundos.',
-  memory: 'Texto desaparece após 3s. Digite de memória.',
-  wave: 'Palavras vêm em ondas. Digite antes que a onda quebre.',
-  rpg: 'Cada frase é um inimigo. Derrote-os com precisão para ganhar XP.',
-  rainbow: 'Pinte o texto com todas as cores do arco-íris. Erros quebram a pintura.'
+  default: 'Modo clássico, digite frases e acompanhe seu desempenho.',
+  fury: 'Mantenha acertos consecutivos: a cada sequência a meta de velocidade aumenta.',
+  survival: 'Cada caractere tem um tempo de vida. Se expirar, você perde uma vida.',
+  sniper: 'Erros consecutivos fazem você recuar caracteres; errar demais reinicia a prova.',
+  wordhunt: 'Palavras embaralhadas: descubra a palavra e digite-a corretamente.',
+  casino: 'Aposte fichas na sua própria precisão e tente aumentar sua banca.',
+  marathon: 'Digite o máximo de palavras antes que o tempo da dificuldade termine.',
+  memory: 'Memorize o texto durante o período de exibição e depois digite sem vê-lo.',
+  wave: 'Complete cada palavra antes do fim da onda para avançar.',
+  rpg: 'Cada frase é um ataque. Derrote o monstro, ganhe XP e evolua.',
+  rainbow: 'Digite corretamente para preencher a frase com as cores do arco-íris.'
 };
 
 let currentModeId = 'default';
@@ -119,33 +119,32 @@ export function renderModeDashboard() {
   `).join('');
 }
 
-
 export function setMode(id, { restart = true } = {}) {
   if (!MODES[id]) return;
+
+  // O modo anterior deve ser completamente encerrado antes de trocar o handler.
   if (currentMode && currentMode.destroy) currentMode.destroy();
-  
+  if (state.isTimerMode) disableTimerMode();
+
   const newMode = MODES[id];
-  if (newMode.hasTimer && state.isTimerMode) disableTimerMode();
-  
   currentModeId = id;
   currentMode = newMode;
   state.currentModeId = id;
-  
+
   localStorage.setItem('selectedGameMode', id);
-  
+
   const modeTrigger = document.getElementById('mode-trigger-text');
   if (modeTrigger) modeTrigger.textContent = MODE_NAMES[id] || id;
-  
+
   const modeStatusTag = document.getElementById('mode-status-tag');
   if (modeStatusTag) modeStatusTag.textContent = MODE_NAMES[id] || 'Padrão';
-  
-  // Atualiza recorde
+
   const stats = getModeStats(id);
   const bestEl = document.getElementById('best-ppm-val');
   if (bestEl) bestEl.textContent = stats.bestPPM || 0;
   renderHistoryChart(id);
   renderModeDashboard();
-  
+
   renderModeList();
   if (restart) initTest();
 }
@@ -153,7 +152,7 @@ export function setMode(id, { restart = true } = {}) {
 export function renderModeList() {
   const container = document.getElementById('modes-list');
   if (!container) return;
-  
+
   container.innerHTML = Object.keys(MODES).map(id => `
     <button type="button" class="modal-option-btn ${id === currentModeId ? 'selected' : ''}" data-value="${id}">
       <div class="option-info">
