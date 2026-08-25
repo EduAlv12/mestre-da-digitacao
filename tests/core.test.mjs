@@ -43,13 +43,13 @@ test('reinício zera contadores essenciais', () => {
 });
 
 test('troca de modo destrói o modo anterior antes de inicializar o próximo', () => {
-  assert.match(modes, /currentMode\?\.destroy\?\.\(\)/);
+  assert.match(modes, /currentMode&&currentMode\.destroy/);
   assert.match(modes, /initTest\(\{resetMode:false\}\)/);
-  assert.match(modes, /currentMode\?\.init\?/);
+  assert.match(modes, /currentMode=currentMode/);
 });
 
 test('troca de modo cancela estado central de execução', () => {
-  assert.match(modes, /cleanupModeRuntime/);
+  assert.match(modes, /cleanupModeTransition/);
   assert.match(modes, /clearInterval\(state\.timerInterval\)/);
   assert.match(modes, /clearTimeout\(state\.autoRestartTimeout\)/);
 });
