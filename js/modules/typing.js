@@ -108,7 +108,11 @@ export function endTest(finalAccuracy, finalWpm, modeId) {
   let xpGain = Math.round((wpm * 2) + (accuracy * 0.5));
   if (accuracy === 100) xpGain += 20;
   if (xpGain < 5) xpGain = 5;
-  const typedChars = Math.max(0, Number(mode?.typed?.length || state.totalTyped || 0));
+
+  // A contagem da sessão pertence ao núcleo, porque alguns modos resetam
+  // o input entre palavras/frases. Isso evita perder caracteres ao trocar
+  // de palavra ou contar apenas o tamanho do último campo de entrada.
+  const typedChars = Math.max(0, Number(state.totalTyped) || 0);
   addGlobalXP(xpGain, typedChars);
 
   updatePPMHistory(id, wpm);
@@ -252,7 +256,17 @@ export function setupTypingEvents() {
     if (e.key === ' ') trackSpaceKey();
   });
   hiddenInput.addEventListener('beforeinput', (e) => {
-    if (/insertFromPaste|insertFromDrop|insertReplacementText|insertFromYank/.test(e.inputType)) e.preventDefault();
+    if (/insertFromPaste|insertFromDrop|insertReplacementText|insertFromYank/.test(e.inputType)) {
+      e.preventDefault();
+      return;
+    }
+
+    // Contagem global de caracteres: beforeinput representa a intenção de
+    // inserção antes de qualquer modo poder resetar o input.
+    if ((e.inputType === 'insertText' || e.inputType === 'insertCompositionText') && e.data) {
+      state.totalTyped += e.data.length;
+    }
+
     if (e.data && e.data.length > 1) e.preventDefault();
   });
   hiddenInput.addEventListener('paste', e => e.preventDefault());
