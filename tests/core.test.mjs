@@ -45,7 +45,8 @@ test('reinício zera contadores essenciais', () => {
 test('troca de modo destrói o modo anterior antes de inicializar o próximo', () => {
   assert.match(modes, /currentMode&&currentMode\.destroy/);
   assert.match(modes, /initTest\(\{resetMode:false\}\)/);
-  assert.match(modes, /currentMode=currentMode/);
+  assert.match(modes, /const newMode=MODES\[id\]/);
+  assert.match(modes, /currentMode=newMode/);
 });
 
 test('troca de modo cancela estado central de execução', () => {
