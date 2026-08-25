@@ -12,7 +12,7 @@ export function loadAchievements() {
   const modeId = state.currentModeId;
   const stats = getModeStats(modeId);
   const medals = MODE_MEDALS[modeId] || [];
-  
+
   const title = document.getElementById('medals-title');
   if (title) {
     const modeName = state.currentModeId.charAt(0).toUpperCase() + state.currentModeId.slice(1);
@@ -38,9 +38,7 @@ export function loadAchievements() {
   }
 
   const customContainer = document.getElementById('custom-medals');
-  if (customContainer) {
-    customContainer.classList.add('hidden');
-  }
+  if (customContainer) customContainer.classList.add('hidden');
 }
 
 export function renderAchievementsUI() {
@@ -49,7 +47,7 @@ export function renderAchievementsUI() {
   const modeId = state.currentModeId;
   const medals = MODE_MEDALS[modeId] || [];
   const stats = getModeStats(modeId);
-  
+
   let html = medals.map(medal => {
     const count = stats.medalCounts[medal.id] || 0;
     const unlocked = count > 0;
@@ -75,7 +73,7 @@ export function renderAchievementsUI() {
       </div>
     </div>`;
   }).join('');
-  
+
   container.innerHTML = html;
 }
 
@@ -85,9 +83,7 @@ export function unlockAchievement(id) {
     saveState();
     renderAchievementsUI();
     const ach = ACHIEVEMENTS_LIST.find(a => a.id === id);
-    if (ach) {
-      showToast(`🏆 Conquista desbloqueada: ${ach.title}`);
-    }
+    if (ach) showToast(`🏆 Conquista desbloqueada: ${ach.title}`);
   }
 }
 
@@ -116,14 +112,12 @@ export function checkTimeAndStreakAchievements() {
     const yesterday = new Date();
     yesterday.setDate(now.getDate() - 1);
     const yStr = getLocalDateStr(yesterday);
-    if (state.userStats.lastActiveDate === yStr) {
-      state.userStats.dayStreak += 1;
-    } else {
-      state.userStats.dayStreak = 1;
-    }
+    if (state.userStats.lastActiveDate === yStr) state.userStats.dayStreak += 1;
+    else state.userStats.dayStreak = 1;
     state.userStats.lastActiveDate = today;
     saveState();
   }
+  // O nome e a descrição da conquista são de 2 dias consecutivos.
   if (state.userStats.dayStreak >= 2) unlockAchievement('streak_3');
 }
 
@@ -174,10 +168,15 @@ export function getXPForLevel(level) {
   return Math.floor(100 * Math.pow(1.25, level - 1));
 }
 
-export function addGlobalXP(amount) {
+// typedChars representa os caracteres efetivamente digitados na rodada.
+// Mantemos o parâmetro opcional para compatibilidade com chamadas antigas.
+export function addGlobalXP(amount, typedChars = 0) {
   const stats = state.userStats;
   stats.globalXP = (stats.globalXP || 0) + amount;
-  stats.totalTypedChars = (stats.totalTypedChars || 0) + 1;
+  if (Number.isFinite(typedChars) && typedChars > 0) {
+    stats.totalTypedChars = (stats.totalTypedChars || 0) + Math.floor(typedChars);
+  }
+
   let needed = getXPForLevel(stats.globalLevel + 1);
   let leveledUp = false;
   while (stats.globalXP >= needed) {
@@ -190,9 +189,7 @@ export function addGlobalXP(amount) {
     if (stats.globalLevel >= 25) unlockAchievement('level_25');
     if (stats.globalLevel >= 50) unlockAchievement('level_50');
   }
-  if (leveledUp) {
-    showToast(`🎉 Subiu para o nível ${stats.globalLevel}!`);
-  }
+  if (leveledUp) showToast(`🎉 Subiu para o nível ${stats.globalLevel}!`);
   saveState();
   updateGlobalLevelUI();
 }

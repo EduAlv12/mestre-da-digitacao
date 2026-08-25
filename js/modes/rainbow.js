@@ -15,13 +15,10 @@ export default {
   startTime: null,
 
   init(text) {
-    const diff = state.currentDifficulty;
-    // Para dificuldade, podemos limitar o tempo ou aumentar o tamanho da frase
-    // Mas aqui apenas usamos a frase do pool correspondente.
     this.painted = 0;
     this.typed = '';
     this.errors = 0;
-    this.startTime = performance.now();
+    this.startTime = null;
 
     const display = document.getElementById('text-display');
     if (display) {
@@ -36,28 +33,32 @@ export default {
   },
 
   resetInput() {
-    document.getElementById('hidden-input').value = '';
+    const input = document.getElementById('hidden-input');
+    if (input) input.value = '';
   },
 
   updateProgress(typed) {
     const total = state.currentText.length;
-    const percent = Math.min(100, Math.round((typed / total) * 100));
-    document.getElementById('progress-fill').style.width = `${percent}%`;
-    document.getElementById('progress-text').textContent = `${typed} / ${total} caracteres`;
-    document.getElementById('progress-percent').textContent = `${percent}%`;
+    const percent = total ? Math.min(100, Math.round((typed / total) * 100)) : 0;
+    const fill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    const percentText = document.getElementById('progress-percent');
+    if (fill) fill.style.width = `${percent}%`;
+    if (progressText) progressText.textContent = `${typed} / ${total} caracteres`;
+    if (percentText) percentText.textContent = `${percent}%`;
   },
 
   updateUI() {
     const tag = document.getElementById('mode-status-tag');
-    if (tag) {
-      tag.innerHTML = `🌈 Coloridos: ${this.painted}/${state.currentText.length}`;
-    }
+    if (tag) tag.innerHTML = `🌈 Coloridos: ${this.painted}/${state.currentText.length}`;
   },
 
   handleInput(value) {
     const text = state.currentText;
     const prevLen = this.typed.length;
     this.typed = value;
+    if (!this.startTime && value.length > 0) this.startTime = performance.now();
+
     const chars = value.split('');
     let errors = 0;
     const spans = document.querySelectorAll('#text-display .char');
@@ -81,11 +82,13 @@ export default {
     this.updateProgress(chars.length);
 
     const accuracy = chars.length > 0 ? Math.round(((chars.length - errors) / chars.length) * 100) : 100;
-    document.getElementById('accuracy-val').textContent = `${accuracy}%`;
+    const accuracyEl = document.getElementById('accuracy-val');
+    if (accuracyEl) accuracyEl.textContent = `${accuracy}%`;
 
-    const elapsed = Math.max(1, Math.floor((performance.now() - this.startTime) / 1000));
-    const wpm = Math.round((chars.length / 5) / (elapsed / 60));
-    document.getElementById('ppm-val').textContent = wpm;
+    const elapsedMs = this.startTime ? Math.max(1, performance.now() - this.startTime) : 1;
+    const wpm = Math.round((chars.length / 5) / (elapsedMs / 60000));
+    const ppmEl = document.getElementById('ppm-val');
+    if (ppmEl) ppmEl.textContent = wpm;
     state.currentPPM = wpm;
 
     this.updateUI();
@@ -93,7 +96,7 @@ export default {
     if (chars.length >= text.length) {
       return { done: true, accuracy, wpm, playError: false };
     }
-    return { done: false, playError: (chars.length > prevLen && chars.length > 0 && chars[chars.length-1] !== text[chars.length-1]) };
+    return { done: false, playError: (chars.length > prevLen && chars.length > 0 && chars[chars.length - 1] !== text[chars.length - 1]) };
   },
 
   reset() {
@@ -105,6 +108,13 @@ export default {
     if (tag) tag.textContent = '🌈 Modo Arco-Íris';
   },
 
+  destroy() {
+    const display = document.getElementById('text-display');
+    if (display) {
+      display.querySelectorAll('.char').forEach(span => span.style.removeProperty('color'));
+    }
+  },
+
   checkMedals(accuracy, wpm, time) {
     if (this.painted === state.currentText.length) incrementMedal(this.id, 'rainbow_full');
     if (time < 10) incrementMedal(this.id, 'rainbow_fast');
@@ -113,8 +123,8 @@ export default {
   getMetrics() {
     const chars = this.typed.length;
     const accuracy = chars > 0 ? Math.round(((chars - this.errors) / chars) * 100) : 100;
-    const elapsed = Math.max(1, Math.floor((performance.now() - this.startTime) / 1000));
-    const wpm = Math.round((chars / 5) / (elapsed / 60));
+    const elapsedMs = this.startTime ? Math.max(1, performance.now() - this.startTime) : 1;
+    const wpm = Math.round((chars / 5) / (elapsedMs / 60000));
     return { accuracy, wpm };
   },
 
