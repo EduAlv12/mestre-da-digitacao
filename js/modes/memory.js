@@ -29,7 +29,7 @@ export default {
     this.hidden = false;
     this.typed = '';
     this.errors = 0;
-    this.startTime = performance.now();
+    this.startTime = null;
     this.textShown = text;
 
     this.render(text);
@@ -38,14 +38,15 @@ export default {
     const tag = document.getElementById('mode-status-tag');
     if (tag) tag.textContent = '🧠 Memorize o texto...';
 
-    // Mostra o texto por alguns segundos, depois esconde
     const display = document.getElementById('text-display');
-    display.style.opacity = '1';
-    this.revealTimeout = setTimeout(() => {
-      display.style.opacity = '0.1';
-      this.hidden = true;
-      if (tag) tag.textContent = '🧠 Digite de memória!';
-    }, this.displayTime * 1000);
+    if (display) {
+      display.style.opacity = '1';
+      this.revealTimeout = setTimeout(() => {
+        display.style.opacity = '0.1';
+        this.hidden = true;
+        if (tag) tag.textContent = '🧠 Digite de memória!';
+      }, this.displayTime * 1000);
+    }
   },
 
   render(text) {
@@ -58,21 +59,27 @@ export default {
   },
 
   resetInput() {
-    document.getElementById('hidden-input').value = '';
+    const input = document.getElementById('hidden-input');
+    if (input) input.value = '';
   },
 
   updateProgress(typed) {
     const total = state.currentText.length;
-    const percent = Math.min(100, Math.round((typed / total) * 100));
-    document.getElementById('progress-fill').style.width = `${percent}%`;
-    document.getElementById('progress-text').textContent = `${typed} / ${total} caracteres`;
-    document.getElementById('progress-percent').textContent = `${percent}%`;
+    const percent = total ? Math.min(100, Math.round((typed / total) * 100)) : 0;
+    const fill = document.getElementById('progress-fill');
+    const textEl = document.getElementById('progress-text');
+    const percentEl = document.getElementById('progress-percent');
+    if (fill) fill.style.width = `${percent}%`;
+    if (textEl) textEl.textContent = `${typed} / ${total} caracteres`;
+    if (percentEl) percentEl.textContent = `${percent}%`;
   },
 
   handleInput(value) {
     const text = state.currentText;
     const prevLen = this.typed.length;
     this.typed = value;
+    if (!this.startTime && value.length > 0) this.startTime = performance.now();
+
     const chars = value.split('');
     let errors = 0;
     const spans = document.querySelectorAll('#text-display .char');
@@ -94,22 +101,30 @@ export default {
     this.updateProgress(chars.length);
 
     const accuracy = chars.length > 0 ? Math.round(((chars.length - errors) / chars.length) * 100) : 100;
-    document.getElementById('accuracy-val').textContent = `${accuracy}%`;
+    const accuracyEl = document.getElementById('accuracy-val');
+    if (accuracyEl) accuracyEl.textContent = `${accuracy}%`;
 
-    const elapsed = Math.max(1, Math.floor((performance.now() - this.startTime) / 1000));
-    const wpm = Math.round((chars.length / 5) / (elapsed / 60));
-    document.getElementById('ppm-val').textContent = wpm;
+    const elapsedMs = this.startTime ? Math.max(1, performance.now() - this.startTime) : 1;
+    const wpm = Math.round((chars.length / 5) / (elapsedMs / 60000));
+    const ppmEl = document.getElementById('ppm-val');
+    if (ppmEl) ppmEl.textContent = wpm;
     state.currentPPM = wpm;
 
     if (chars.length >= text.length) {
-      if (this.revealTimeout) clearTimeout(this.revealTimeout);
+      if (this.revealTimeout) {
+        clearTimeout(this.revealTimeout);
+        this.revealTimeout = null;
+      }
       return { done: true, accuracy, wpm, playError: false };
     }
     return { done: false, playError: (chars.length > prevLen && chars.length > 0 && chars[chars.length-1] !== text[chars.length-1]) };
   },
 
   reset() {
-    if (this.revealTimeout) clearTimeout(this.revealTimeout);
+    if (this.revealTimeout) {
+      clearTimeout(this.revealTimeout);
+      this.revealTimeout = null;
+    }
     this.hidden = false;
     this.typed = '';
     this.errors = 0;
@@ -125,8 +140,6 @@ export default {
       clearTimeout(this.revealTimeout);
       this.revealTimeout = null;
     }
-    // O modo Memória altera a opacidade do texto. Sempre restaure o
-    // estado visual ao sair do modo para não contaminar os demais modos.
     const display = document.getElementById('text-display');
     if (display) {
       display.style.opacity = '1';
@@ -144,8 +157,8 @@ export default {
   getMetrics() {
     const chars = this.typed.length;
     const accuracy = chars > 0 ? Math.round(((chars - this.errors) / chars) * 100) : 100;
-    const elapsed = Math.max(1, Math.floor((performance.now() - this.startTime) / 1000));
-    const wpm = Math.round((chars / 5) / (elapsed / 60));
+    const elapsedMs = this.startTime ? Math.max(1, performance.now() - this.startTime) : 1;
+    const wpm = Math.round((chars / 5) / (elapsedMs / 60000));
     return { accuracy, wpm };
   },
 
