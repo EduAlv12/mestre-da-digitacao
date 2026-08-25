@@ -33,7 +33,8 @@ export default {
     this.processing = false;
     this.typed = '';
     this.errors = 0;
-    this.startTime = performance.now();
+    // A sessão começa somente quando a primeira tecla for realmente digitada.
+    this.startTime = null;
 
     this.render(text);
     this.resetInput();
@@ -51,15 +52,19 @@ export default {
   },
 
   resetInput() {
-    document.getElementById('hidden-input').value = '';
+    const input = document.getElementById('hidden-input');
+    if (input) input.value = '';
   },
 
   updateProgress(typed) {
-    const total = state.currentText.length;
+    const total = state.currentText.length || 1;
     const percent = Math.min(100, Math.round((typed / total) * 100));
-    document.getElementById('progress-fill').style.width = `${percent}%`;
-    document.getElementById('progress-text').textContent = `${typed} / ${total} caracteres`;
-    document.getElementById('progress-percent').textContent = `${percent}%`;
+    const fill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    const percentEl = document.getElementById('progress-percent');
+    if (fill) fill.style.width = `${percent}%`;
+    if (progressText) progressText.textContent = `${typed} / ${state.currentText.length} caracteres`;
+    if (percentEl) percentEl.textContent = `${percent}%`;
   },
 
   updateUI() {
@@ -71,8 +76,12 @@ export default {
 
   handleInput(value) {
     if (this.processing) return { playError: false };
-    
+
     const text = state.currentText;
+    if (!text) return { done: false, playError: false };
+
+    if (!this.startTime && value.length > 0) this.startTime = performance.now();
+
     const prevLen = this.typed.length;
     this.typed = value;
     const chars = value.split('');
@@ -95,11 +104,13 @@ export default {
     this.updateProgress(chars.length);
 
     const accuracy = chars.length > 0 ? Math.round(((chars.length - errors) / chars.length) * 100) : 100;
-    document.getElementById('accuracy-val').textContent = `${accuracy}%`;
+    const accuracyEl = document.getElementById('accuracy-val');
+    if (accuracyEl) accuracyEl.textContent = `${accuracy}%`;
 
-    const elapsed = Math.max(1, Math.floor((performance.now() - this.startTime) / 1000));
-    const wpm = Math.round((chars.length / 5) / (elapsed / 60));
-    document.getElementById('ppm-val').textContent = wpm;
+    const elapsedMs = this.startTime ? Math.max(1, performance.now() - this.startTime) : 1;
+    const wpm = Math.round((chars.length / 5) / (elapsedMs / 60000));
+    const ppmEl = document.getElementById('ppm-val');
+    if (ppmEl) ppmEl.textContent = wpm;
     state.currentPPM = wpm;
 
     const lastChar = chars[chars.length - 1];
@@ -111,19 +122,23 @@ export default {
 
       if (this.consecutiveErrors >= this.maxErrors) {
         return { playError: true, reset: true };
-      } else {
-        const input = document.getElementById('hidden-input');
-        if (input) {
-          this.processing = true;
-          const newVal = input.value.slice(0, -this.rewind);
-          input.value = newVal;
-          input.dispatchEvent(new Event('input', { bubbles: true }));
-          this.processing = false;
-          this.typed = newVal;
-        }
-        return { playError: true };
       }
-    } else if (chars.length > prevLen && chars.length > 0) {
+
+      const input = document.getElementById('hidden-input');
+      if (input) {
+        this.processing = true;
+        // Nunca remova mais caracteres do que realmente existem.
+        const removeCount = Math.min(this.rewind, input.value.length);
+        const newVal = input.value.slice(0, input.value.length - removeCount);
+        input.value = newVal;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        this.processing = false;
+        this.typed = newVal;
+      }
+      return { playError: true };
+    }
+
+    if (chars.length > prevLen && chars.length > 0) {
       this.consecutiveErrors = 0;
       this.updateUI();
     }
@@ -152,8 +167,8 @@ export default {
   getMetrics() {
     const chars = this.typed.length;
     const accuracy = chars > 0 ? Math.round(((chars - this.errors) / chars) * 100) : 100;
-    const elapsed = Math.max(1, Math.floor((performance.now() - this.startTime) / 1000));
-    const wpm = Math.round((chars / 5) / (elapsed / 60));
+    const elapsed = this.startTime ? Math.max(1, performance.now() - this.startTime) : 1;
+    const wpm = Math.round((chars / 5) / (elapsed / 60000));
     return { accuracy, wpm };
   },
 
