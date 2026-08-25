@@ -39,9 +39,7 @@ document.addEventListener('modeResetTest', () => {
 });
 
 document.addEventListener('modeUpdateDisplay', (e) => {
-  if (e.detail?.html) {
-    textDisplay.innerHTML = e.detail.html;
-  }
+  if (e.detail?.html) textDisplay.innerHTML = e.detail.html;
 });
 
 export function updateProgress(typed, total) {
@@ -52,6 +50,7 @@ export function updateProgress(typed, total) {
 }
 
 function getElapsedSeconds() {
+  if (!state.startTime) return 0;
   return Math.max(1, Math.floor((performance.now() - state.startTime) / 1000));
 }
 
@@ -59,13 +58,19 @@ function startTimer() {
   if (state.isRunning) return;
   state.isRunning = true;
   state.startTime = performance.now();
+  const mode = getModeHandler();
+  // O modo e o núcleo usam exatamente o instante da primeira tecla.
+  // Isso evita contar o tempo passado parado na tela antes de começar.
+  if (mode && Object.prototype.hasOwnProperty.call(mode, 'startTime')) {
+    mode.startTime = state.startTime;
+  }
   clearInterval(state.timerInterval);
   state.timerInterval = setInterval(() => {
     const sec = getElapsedSeconds();
     if (timerVal) timerVal.textContent = `${sec}s`;
-    const mode = getModeHandler();
-    if (mode && mode.getMetrics) {
-      const metrics = mode.getMetrics();
+    const currentMode = getModeHandler();
+    if (currentMode && currentMode.getMetrics) {
+      const metrics = currentMode.getMetrics();
       if (metrics && metrics.wpm !== undefined) {
         ppmVal.textContent = metrics.wpm;
         state.currentPPM = metrics.wpm;
@@ -84,6 +89,7 @@ export function endTest(finalAccuracy, finalWpm, modeId) {
 
   clearInterval(state.timerInterval);
   clearInterval(state.timerModeInterval);
+  state.timerInterval = null;
   state.timerModeInterval = null;
   state.isRunning = false;
 
@@ -105,7 +111,6 @@ export function endTest(finalAccuracy, finalWpm, modeId) {
   if (ppmVal) ppmVal.textContent = wpm;
   if (accuracyVal) accuracyVal.textContent = `${accuracy}%`;
 
-  // XP GLOBAL
   let xpGain = Math.round((wpm * 2) + (accuracy * 0.5));
   if (accuracy === 100) xpGain += 20;
   if (xpGain < 5) xpGain = 5;
@@ -120,21 +125,16 @@ export function endTest(finalAccuracy, finalWpm, modeId) {
   modeStats.bestTime = modeStats.bestTime == null ? finalTime : Math.min(modeStats.bestTime, finalTime);
   saveState();
 
-  if (mode && mode.checkMedals) {
-    mode.checkMedals(accuracy, wpm, finalTime);
-  }
+  if (mode && mode.checkMedals) mode.checkMedals(accuracy, wpm, finalTime);
 
   let modeMessage = '';
-  if (mode && mode.getResultMessage) {
-    modeMessage = mode.getResultMessage(accuracy, wpm);
-  }
-
+  if (mode && mode.getResultMessage) modeMessage = mode.getResultMessage(accuracy, wpm);
   showResult('success', `🎉 <strong>${accuracy}%</strong> em ${finalTime}s. ${modeMessage}`);
 
   checkRoundAchievements(wpm, accuracy, state.currentTheme);
   loadAchievements();
   state._ending = false;
-  hiddenInput.disabled = true;
+  if (hiddenInput) hiddenInput.disabled = true;
   syncRpgContinueButton();
 }
 
@@ -149,6 +149,7 @@ export function initTest() {
   syncRpgContinueButton();
   clearInterval(state.timerInterval);
   clearTimeout(state.autoRestartTimeout);
+  state.timerInterval = null;
   state.isRunning = false;
   state.totalTyped = 0;
   state.errors = 0;
@@ -156,7 +157,7 @@ export function initTest() {
   state.previousInput = '';
   state.currentPPM = 0;
   state._ending = false;
-  
+
   if (hiddenInput) {
     hiddenInput.value = '';
     hiddenInput.disabled = false;
@@ -174,8 +175,6 @@ export function initTest() {
     countdownTag.classList.add('hidden');
     countdownTag.classList.remove('warning');
   }
-
-  state.startTime = performance.now();
 
   const mode = getModeHandler();
   if (mode && mode.reset) mode.reset();
@@ -195,6 +194,8 @@ export function initTest() {
 
   if (mode && mode.init) {
     mode.init(state.currentText);
+    // Preparar o modo não inicia a sessão. O relógio começa na primeira tecla.
+    if (Object.prototype.hasOwnProperty.call(mode, 'startTime')) mode.startTime = null;
   } else {
     textDisplay.innerHTML = state.currentText.split('').map(ch => `<span class="char">${ch}</span>`).join('');
   }
@@ -216,18 +217,15 @@ export function initTest() {
 
 export function handleTyping() {
   const mode = getModeHandler();
-  if (!state.isRunning && hiddenInput?.value?.length) startTimer();
-  if (!mode) return;
+  if (!mode || !hiddenInput) return;
 
   const inputValue = hiddenInput.value;
+  if (!state.isRunning && inputValue.length) startTimer();
+
   const result = mode.handleInput(inputValue);
-  
   if (result) {
-    if (result.playError) {
-      audioEngine.playErrorSound();
-    } else if (result.playSound !== false) {
-      audioEngine.playKey(false);
-    }
+    if (result.playError) audioEngine.playErrorSound();
+    else if (result.playSound !== false) audioEngine.playKey(false);
 
     if (result.done) {
       const accuracy = result.accuracy !== undefined ? result.accuracy : 100;
@@ -235,12 +233,10 @@ export function handleTyping() {
       endTest(accuracy, wpm);
       return;
     }
-    
     if (result.reset) {
       initTest();
       return;
     }
-    
     if (result.metrics) {
       if (result.metrics.wpm !== undefined) ppmVal.textContent = result.metrics.wpm;
       if (result.metrics.accuracy !== undefined) accuracyVal.textContent = `${result.metrics.accuracy}%`;
@@ -259,14 +255,10 @@ export function setupTypingEvents() {
   hiddenInput.setAttribute('data-form-type', 'other');
 
   hiddenInput.addEventListener('keydown', (e) => {
-    if (e.key === ' ') {
-      trackSpaceKey();
-    }
+    if (e.key === ' ') trackSpaceKey();
   });
   hiddenInput.addEventListener('beforeinput', (e) => {
-    if (/insertFromPaste|insertFromDrop|insertReplacementText|insertFromYank/.test(e.inputType)) {
-      e.preventDefault();
-    }
+    if (/insertFromPaste|insertFromDrop|insertReplacementText|insertFromYank/.test(e.inputType)) e.preventDefault();
     if (e.data && e.data.length > 1) e.preventDefault();
   });
   hiddenInput.addEventListener('paste', e => e.preventDefault());
@@ -275,9 +267,7 @@ export function setupTypingEvents() {
 
   if (textDisplay) {
     textDisplay.addEventListener('click', () => {
-      if (!hiddenInput.disabled) {
-        hiddenInput.focus({ preventScroll: true });
-      }
+      if (!hiddenInput.disabled) hiddenInput.focus({ preventScroll: true });
     });
   }
 }
