@@ -117,6 +117,7 @@ export function checkTimeAndStreakAchievements() {
     state.userStats.lastActiveDate = today;
     saveState();
   }
+  // O nome e a descrição da conquista são de 2 dias consecutivos.
   if (state.userStats.dayStreak >= 2) unlockAchievement('streak_3');
 }
 
