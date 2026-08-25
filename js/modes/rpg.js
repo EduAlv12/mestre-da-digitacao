@@ -18,20 +18,19 @@ const BOSS_POOL = [
   { name: '🧙‍♂️ Mago das Trevas', hpBase: 500, xpBase: 180, attack: 20, isBoss: true },
 ];
 
+const DIFFICULTY = {
+  easy: { playerAttack: 7, monsterHpMult: 1.0, xpMult: 1.0 },
+  medium: { playerAttack: 6, monsterHpMult: 1.15, xpMult: 1.2 },
+  hard: { playerAttack: 5, monsterHpMult: 1.3, xpMult: 1.5 }
+};
+
 export default {
   id: 'rpg',
   name: 'RPG',
   linear: false,
   hasTimer: false,
 
-  player: {
-    level: 1,
-    xp: 0,
-    xpToNext: 10,
-    hp: 100,
-    maxHp: 100,
-    attack: 3,
-  },
+  player: { level: 1, xp: 0, xpToNext: 10, hp: 100, maxHp: 100, attack: 3 },
   monster: null,
   typed: '',
   errors: 0,
@@ -46,6 +45,7 @@ export default {
   isBossBattle: false,
   playerHP: 100,
   maxPlayerHP: 100,
+  _lastErrorCount: 0,
 
   init(text) {
     const continueBtn = document.getElementById('rpg-continue-btn');
@@ -53,35 +53,27 @@ export default {
       continueBtn.dataset.bound = 'true';
       continueBtn.addEventListener('click', () => this.continueBattle());
     }
-    const diff = state.currentDifficulty;
-    const difficultyConfig = {
-      easy:   { playerAttack: 7, monsterHpMult: 1.0, xpMult: 1.0 },
-      medium: { playerAttack: 6, monsterHpMult: 1.15, xpMult: 1.2 },
-      hard:   { playerAttack: 5, monsterHpMult: 1.3, xpMult: 1.5 }
-    };
-    const config = difficultyConfig[diff] || difficultyConfig.easy;
 
+    const config = DIFFICULTY[state.currentDifficulty] || DIFFICULTY.easy;
     const saved = localStorage.getItem('rpg_player');
     if (saved) {
-      try {
-        const p = JSON.parse(saved);
-        this.player = { ...this.player, ...p };
-      } catch (_) {}
+      try { this.player = { ...this.player, ...JSON.parse(saved) }; } catch (_) {}
     }
+
     this.player.attack = config.playerAttack;
     this.player.hp = this.player.maxHp;
     this.playerHP = this.player.maxHp;
     this.maxPlayerHP = this.player.maxHp;
-
     this.typed = '';
     this.errors = 0;
     this.totalErrors = 0;
+    this._lastErrorCount = 0;
     this.totalCorrect = 0;
-    // O núcleo define o início real na primeira tecla.
     this.startTime = null;
     this.battleOver = false;
     this.combo = 0;
     this.maxCombo = 0;
+    this.comboBonus = 0;
     this.battleCount = parseInt(localStorage.getItem('rpg_battleCount')) || 0;
 
     this.spawnMonster(config);
@@ -91,44 +83,36 @@ export default {
   },
 
   spawnMonster(config) {
-    const isBoss = (this.battleCount > 0 && this.battleCount % 5 === 0);
+    const isBoss = this.battleCount > 0 && this.battleCount % 5 === 0;
     this.isBossBattle = isBoss;
-    let pool = isBoss ? BOSS_POOL : MONSTER_POOL;
-    let maxIndex = Math.min(this.player.level - 1, pool.length - 1);
-    if (maxIndex < 0) maxIndex = 0;
-    const index = Math.floor(Math.random() * (maxIndex + 1));
-    const base = pool[index];
-
+    const pool = isBoss ? BOSS_POOL : MONSTER_POOL;
+    const maxIndex = Math.max(0, Math.min(this.player.level - 1, pool.length - 1));
+    const base = pool[Math.floor(Math.random() * (maxIndex + 1))];
     const levelScale = 1 + (this.player.level - 1) * 0.15;
     const hp = Math.floor(base.hpBase * levelScale * config.monsterHpMult);
     const xpReward = Math.floor(base.xpBase * levelScale * config.xpMult);
-    const finalXp = isBoss ? Math.floor(xpReward * 2) : xpReward;
-
     const diff = state.currentDifficulty === 'custom' ? 'easy' : (state.currentDifficulty || 'easy');
     const sentences = SENTENCES[diff] || SENTENCES.easy;
-    const text = sentences[Math.floor(Math.random() * sentences.length)];
 
     this.monster = {
       name: base.name,
       hp,
       maxHp: hp,
-      xpReward: finalXp,
+      xpReward: isBoss ? Math.floor(xpReward * 2) : xpReward,
       attack: base.attack + (isBoss ? 5 : 0),
       isBoss,
-      text,
+      text: sentences[Math.floor(Math.random() * sentences.length)]
     };
 
     const display = document.getElementById('text-display');
-    if (display) {
-      display.innerHTML = text.split('').map((ch, i) =>
-        `<span class="char ${i === 0 ? 'current' : ''}">${ch}</span>`
-      ).join('');
-    }
-    document.getElementById('hidden-input').value = '';
+    if (display) display.innerHTML = this.monster.text.split('').map((ch, i) => `<span class="char ${i === 0 ? 'current' : ''}">${ch}</span>`).join('');
+    this.resetInput();
     this.typed = '';
     this.errors = 0;
+    this._lastErrorCount = 0;
     this.battleOver = false;
     this.combo = 0;
+    this.comboBonus = 0;
     const continueBtn = document.getElementById('rpg-continue-btn');
     if (continueBtn) continueBtn.classList.add('hidden');
     this.updateUI();
@@ -136,16 +120,11 @@ export default {
 
   renderSentence(text) {
     const display = document.getElementById('text-display');
-    if (display) {
-      display.innerHTML = text.split('').map((ch, i) =>
-        `<span class="char ${i === 0 ? 'current' : ''}">${ch}</span>`
-      ).join('');
-    }
-    const input = document.getElementById('hidden-input');
-    if (input) input.value = '';
+    if (display) display.innerHTML = text.split('').map((ch, i) => `<span class="char ${i === 0 ? 'current' : ''}">${ch}</span>`).join('');
+    this.resetInput();
     this.typed = '';
     this.errors = 0;
-    // Não reinicia o relógio aqui: trocar a frase faz parte da mesma batalha.
+    this._lastErrorCount = 0;
     this.updateProgress(0);
     const accuracy = document.getElementById('accuracy-val');
     if (accuracy) accuracy.textContent = '100%';
@@ -162,35 +141,36 @@ export default {
       while (text === previous && guard++ < 10) text = sentences[Math.floor(Math.random() * sentences.length)];
     }
     this.monster.text = text;
-    this.battleOver = false;
     this.renderSentence(text);
     this.updateUI();
   },
 
   resetInput() {
-    document.getElementById('hidden-input').value = '';
+    const input = document.getElementById('hidden-input');
+    if (input) input.value = '';
   },
 
   updateProgress(typed) {
+    if (!this.monster) return;
     const total = this.monster.text.length;
-    const percent = Math.min(100, Math.round((typed / total) * 100));
-    document.getElementById('progress-fill').style.width = `${percent}%`;
-    document.getElementById('progress-text').textContent = `${typed} / ${total} caracteres`;
-    document.getElementById('progress-percent').textContent = `${percent}%`;
+    const percent = total ? Math.min(100, Math.round((typed / total) * 100)) : 0;
+    const fill = document.getElementById('progress-fill');
+    const text = document.getElementById('progress-text');
+    const percentEl = document.getElementById('progress-percent');
+    if (fill) fill.style.width = `${percent}%`;
+    if (text) text.textContent = `${typed} / ${total} caracteres`;
+    if (percentEl) percentEl.textContent = `${percent}%`;
   },
 
   updateUI() {
     const tag = document.getElementById('mode-status-tag');
-    if (tag) {
-      const p = this.player;
-      const m = this.monster;
-      const hpPercent = Math.round((m.hp / m.maxHp) * 100);
-      const hpBar = '❤️'.repeat(Math.max(0, Math.floor(this.playerHP / 10))) + '🖤'.repeat(Math.max(0, 10 - Math.floor(this.playerHP / 10)));
-      const comboStr = this.combo > 0 ? `🔥 ${this.combo}x` : '';
-      const bossTag = m.isBoss ? '👑 BOSS' : '';
-      tag.innerHTML =
-        `⚔️ Lv.${p.level} (${p.xp}/${p.xpToNext} XP) &nbsp;|&nbsp; ${hpBar} &nbsp;|&nbsp; ${comboStr} &nbsp;|&nbsp; 🐉 ${m.name} HP: ${hpPercent}% ${bossTag}`;
-    }
+    if (!tag || !this.monster) return;
+    const p = this.player;
+    const m = this.monster;
+    const hpPercent = m.maxHp ? Math.round((m.hp / m.maxHp) * 100) : 0;
+    const hpBar = '❤️'.repeat(Math.max(0, Math.min(10, Math.floor(this.playerHP / this.maxPlayerHP * 10)))) + '🖤'.repeat(Math.max(0, 10 - Math.floor(this.playerHP / this.maxPlayerHP * 10)));
+    const comboStr = this.combo > 0 ? `🔥 ${this.combo}x` : '';
+    tag.innerHTML = `⚔️ Lv.${p.level} (${p.xp}/${p.xpToNext} XP) | ${hpBar} | ${comboStr} | 🐉 ${m.name} HP: ${hpPercent}% ${m.isBoss ? '👑 BOSS' : ''}`;
   },
 
   defeatMonster() {
@@ -205,17 +185,14 @@ export default {
     if (this.battleCount >= 10) unlockAchievement('battle_10');
     if (this.battleCount >= 50) unlockAchievement('battle_50');
     if (this.battleCount >= 100) unlockAchievement('battle_100');
-    if (this.battleCount >= 50) unlockAchievement('rpg_win_50');
-    
-    const dropChance = 0.3;
+
     let rewardMsg = '';
-    if (Math.random() < dropChance) {
+    if (Math.random() < 0.3) {
       const heal = Math.floor(this.player.maxHp * 0.2);
       this.playerHP = Math.min(this.player.maxHp, this.playerHP + heal);
       rewardMsg = ` +💚${heal} HP (poção)`;
     }
     this.checkLevelUp();
-
     const msg = document.getElementById('result-message');
     if (msg) {
       msg.className = 'result-message success';
@@ -233,30 +210,24 @@ export default {
   continueBattle() {
     const msg = document.getElementById('result-message');
     if (msg) msg.classList.add('hidden');
-    const diff = state.currentDifficulty;
-    const config = {
-      easy: { playerAttack: 7, monsterHpMult: 1.0, xpMult: 1.0 },
-      medium: { playerAttack: 6, monsterHpMult: 1.15, xpMult: 1.2 },
-      hard: { playerAttack: 5, monsterHpMult: 1.3, xpMult: 1.5 }
-    }[diff] || { playerAttack: 7, monsterHpMult: 1.0, xpMult: 1.0 };
+    const config = DIFFICULTY[state.currentDifficulty] || DIFFICULTY.easy;
     this.spawnMonster(config);
-    this.resetInput();
     const input = document.getElementById('hidden-input');
     if (input) input.disabled = false;
-    document.getElementById('accuracy-val').textContent = '100%';
+    const accuracy = document.getElementById('accuracy-val');
+    if (accuracy) accuracy.textContent = '100%';
     return { playError: false, playSound: false };
   },
 
   handleInput(value) {
-    if (this.battleOver) return { playError: false, playSound: false };
+    if (this.battleOver || !this.monster) return { playError: false, playSound: false };
     const prevLen = this.typed.length;
     this.typed = value;
+    if (!this.startTime && value.length > 0) this.startTime = performance.now();
     const chars = value.split('');
     const text = this.monster.text;
-
     let errors = 0;
-    const spans = document.querySelectorAll('#text-display .char');
-    spans.forEach((span, idx) => {
+    document.querySelectorAll('#text-display .char').forEach((span, idx) => {
       const typed = chars[idx];
       const target = text[idx];
       span.classList.remove('correct', 'incorrect', 'current');
@@ -264,61 +235,38 @@ export default {
         if (idx === chars.length) span.classList.add('current');
       } else if (typed === target) {
         span.classList.add('correct');
-        span.style.animation = 'none';
-        void span.offsetHeight;
-        span.style.animation = 'popCorrect 0.1s ease';
       } else {
         span.classList.add('incorrect');
-        span.style.animation = 'shake 0.1s ease';
         errors++;
       }
     });
     this.errors = errors;
-    const addedErrors = Math.max(0, errors - (this._lastErrorCount || 0));
-    if (addedErrors > 0) this.totalErrors += addedErrors;
+    const addedErrors = Math.max(0, errors - this._lastErrorCount);
+    if (addedErrors) this.totalErrors += addedErrors;
     this._lastErrorCount = errors;
     this.updateProgress(chars.length);
 
-    const accuracy = chars.length > 0 ? Math.round(((chars.length - errors) / chars.length) * 100) : 100;
-    document.getElementById('accuracy-val').textContent = `${accuracy}%`;
-
-    const elapsed = Math.max(1, Math.floor((performance.now() - (state.startTime || performance.now())) / 1000));
-    const wpm = Math.round((chars.length / 5) / (elapsed / 60));
-    document.getElementById('ppm-val').textContent = wpm;
+    const accuracy = chars.length ? Math.round(((chars.length - errors) / chars.length) * 100) : 100;
+    const accuracyEl = document.getElementById('accuracy-val');
+    if (accuracyEl) accuracyEl.textContent = `${accuracy}%`;
+    const elapsedMs = this.startTime ? Math.max(1, performance.now() - this.startTime) : 1;
+    const wpm = Math.round((chars.length / 5) / (elapsedMs / 60000));
+    const ppmEl = document.getElementById('ppm-val');
+    if (ppmEl) ppmEl.textContent = wpm;
     state.currentPPM = wpm;
 
-    const lastChar = chars[chars.length - 1];
-    const lastTarget = text[chars.length - 1];
-    if (chars.length > prevLen && chars.length > 0) {
-      if (lastChar === lastTarget) {
+    if (chars.length > prevLen && chars.length) {
+      const correct = chars[chars.length - 1] === text[chars.length - 1];
+      if (correct) {
         this.combo++;
-        if (this.combo > this.maxCombo) this.maxCombo = this.combo;
-        if (this.combo % 5 === 0) {
-          this.comboBonus += 1;
-          const msg = document.getElementById('result-message');
-          if (msg) {
-            msg.className = 'result-message success';
-            msg.innerHTML = `🔥 Combo x${this.combo}! +${this.comboBonus} de dano extra`;
-            msg.classList.remove('hidden');
-            setTimeout(() => msg.classList.add('hidden'), 1200);
-          }
-          audioEngine.playKey(true);
-        }
+        this.maxCombo = Math.max(this.maxCombo, this.combo);
+        if (this.combo % 5 === 0) this.comboBonus++;
         this.totalCorrect++;
       } else {
         this.combo = 0;
         this.comboBonus = 0;
-        const monsterDamage = Math.max(1, this.monster.attack - Math.floor(this.player.level / 2));
-        this.playerHP -= monsterDamage;
-        if (this.playerHP < 0) this.playerHP = 0;
-        const msg = document.getElementById('result-message');
-        if (msg) {
-          msg.className = 'result-message warning';
-          msg.innerHTML = `💥 Erro! Perdeu combo. Monstro causou ${monsterDamage} de dano.`;
-          msg.classList.remove('hidden');
-          setTimeout(() => msg.classList.add('hidden'), 1000);
-        }
-        audioEngine.playErrorSound();
+        const damage = Math.max(1, this.monster.attack - Math.floor(this.player.level / 2));
+        this.playerHP = Math.max(0, this.playerHP - damage);
         this.updateUI();
         if (this.playerHP <= 0) {
           this.playerDeath();
@@ -328,35 +276,17 @@ export default {
     }
 
     if (chars.length >= text.length && this.monster.hp > 0) {
-      const baseAttack = this.player.attack + this.comboBonus;
-      let crit = false;
-      if (this.combo >= 10 && accuracy === 100) {
-        crit = true;
-      } else if (this.combo >= 5 && Math.random() < 0.2) {
-        crit = true;
-      }
-      let damage = baseAttack + Math.floor(this.combo / 3);
-      if (crit) {
-        damage = Math.floor(damage * 1.8);
-        const msg = document.getElementById('result-message');
-        if (msg) {
-          msg.className = 'result-message success';
-          msg.innerHTML = `💥 CRÍTICO! +${damage} de dano!`;
-          msg.classList.remove('hidden');
-          setTimeout(() => msg.classList.add('hidden'), 1000);
-        }
-        audioEngine.playKey(true);
-      }
-      this.monster.hp -= damage;
+      let damage = this.player.attack + this.comboBonus + Math.floor(this.combo / 3);
+      const crit = this.combo >= 10 && accuracy === 100;
+      if (crit) damage = Math.floor(damage * 1.8);
+      this.monster.hp = Math.max(0, this.monster.hp - damage);
       this.updateUI();
       if (this.monster.hp <= 0) {
         this.defeatMonster();
-        return { playError: false, playSound: false };
       } else {
         this.resetSentenceForSameMonster();
       }
     }
-
     return { playError: false, playSound: false };
   },
 
@@ -370,7 +300,6 @@ export default {
       msg.className = 'result-message warning';
       msg.innerHTML = `💀 Você morreu! Perdeu ${xpLoss} XP global.`;
       msg.classList.remove('hidden');
-      setTimeout(() => msg.classList.add('hidden'), 2000);
     }
     const continueBtn = document.getElementById('rpg-continue-btn');
     if (continueBtn) continueBtn.classList.remove('hidden');
@@ -397,10 +326,9 @@ export default {
         msg.className = 'result-message success';
         msg.innerHTML = `🎉 UP! Nível ${p.level}! Ataque +1, HP +10`;
         msg.classList.remove('hidden');
-        setTimeout(() => msg.classList.add('hidden'), 2000);
       }
-      localStorage.setItem('rpg_player', JSON.stringify(p));
     }
+    localStorage.setItem('rpg_player', JSON.stringify(p));
     this.updateUI();
   },
 
@@ -414,15 +342,11 @@ export default {
     this.typed = '';
     this.errors = 0;
     this.totalErrors = 0;
+    this._lastErrorCount = 0;
     this.startTime = null;
     this.playerHP = this.player.maxHp;
     this.maxPlayerHP = this.player.maxHp;
-    const diff = state.currentDifficulty;
-    const config = {
-      easy:   { playerAttack: 7, monsterHpMult: 1.0, xpMult: 1.0 },
-      medium: { playerAttack: 6, monsterHpMult: 1.15, xpMult: 1.2 },
-      hard:   { playerAttack: 5, monsterHpMult: 1.3, xpMult: 1.5 }
-    }[diff] || { playerAttack: 7, monsterHpMult: 1.0, xpMult: 1.0 };
+    const config = DIFFICULTY[state.currentDifficulty] || DIFFICULTY.easy;
     this.spawnMonster(config);
     this.updateUI();
   },
@@ -439,10 +363,10 @@ export default {
 
   getMetrics() {
     const chars = Math.max(0, Number(state.totalTyped) || 0);
-    const accuracy = chars > 0 ? Math.round(((chars - this.totalErrors) / chars) * 100) : 100;
-    const elapsed = Math.max(1, Math.floor((performance.now() - (state.startTime || performance.now())) / 1000));
-    const wpm = Math.round((chars / 5) / (elapsed / 60));
-    return { accuracy: Math.max(0, accuracy), wpm };
+    const accuracy = chars > 0 ? Math.max(0, Math.round(((chars - this.totalErrors) / chars) * 100)) : 100;
+    const elapsedMs = this.startTime ? Math.max(1, performance.now() - this.startTime) : 1;
+    const wpm = Math.round((chars / 5) / (elapsedMs / 60000));
+    return { accuracy, wpm };
   },
 
   getResultMessage(accuracy, wpm) {
