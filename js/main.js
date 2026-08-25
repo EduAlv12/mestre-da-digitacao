@@ -6,6 +6,7 @@ import { setupTypingEvents } from './modules/typing.js';
 import { setDifficulty, setTheme, setSoundProfile, loadSavedSettings, setupModalTriggers, showWelcomeModal, toggleTimerMode, setupShareButton, renderHistoryChart as renderChart } from './modules/ui.js';
 import { loadSavedMode } from './modes/index.js';
 import { setupChangelog } from './modules/changelog.js';
+import { setupRestartControl } from './modules/restart-control.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🚀 Mestre da Digitação iniciado!');
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupShareButton();
   setupTypingEvents();
   setupChangelog();
+  setupRestartControl();
   setDifficulty('easy');
   loadAchievements();
   showWelcomeModal();
