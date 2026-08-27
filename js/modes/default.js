@@ -1,5 +1,6 @@
 // js/modes/default.js
-import { state, SENTENCES } from '../modules/utils.js';
+import { state } from '../modules/utils.js';
+import { getNextSentence } from '../modules/sentence-engine.js';
 import { incrementMedal } from '../modules/stats.js';
 
 export default {
@@ -11,9 +12,7 @@ export default {
     this.typed = ''; this.errors = 0; this.startTime = null;
     this.sessionChars = 0; this.sessionErrors = 0;
     const diff = state.currentDifficulty;
-    const pool = SENTENCES[diff] || SENTENCES.easy;
-    const shuffled = [...pool].sort(() => Math.random() - 0.5);
-    this.phaseTexts = shuffled.slice(0, 5);
+    this.phaseTexts = Array.from({ length: 5 }, () => getNextSentence(diff));
     this.phase = 0;
     this.currentText = this.phaseTexts[0] || text || '';
     state.currentText = this.currentText;
