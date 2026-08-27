@@ -1,10 +1,15 @@
 /* V3 UI: reorganiza apenas a apresentação. IDs e listeners existentes são preservados. */
 (() => {
+  const css = document.createElement('link');
+  css.rel = 'stylesheet';
+  css.href = './ui-v3.css';
+  document.head.appendChild(css);
+
   const init = () => {
+    if (window.matchMedia('(min-width: 761px)').matches) return;
     const header = document.querySelector('.app-header');
     const controls = document.querySelector('.header-controls');
     if (!header || !controls || document.querySelector('.ui-v3-drawer')) return;
-
     const top = header.firstElementChild;
     if (!top) return;
 
@@ -51,8 +56,7 @@
       grid.className = 'ui-v3-controls';
       group.ids.forEach(id => {
         const node = document.getElementById(id);
-        if (!node) return;
-        const groupNode = node.closest('.control-group');
+        const groupNode = node?.closest('.control-group');
         if (groupNode) grid.appendChild(groupNode);
       });
       section.appendChild(grid);
@@ -68,9 +72,7 @@
     head.querySelector('.ui-v3-close').addEventListener('click', close);
     backdrop.addEventListener('click', close);
     document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
-
     controls.style.display = 'none';
-    document.body.classList.add('ui-v3-ready');
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
