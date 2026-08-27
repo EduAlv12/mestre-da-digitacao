@@ -1,6 +1,7 @@
 // js/main.js
 import './ui-v3.js';
 import './keyboard-focus.js';
+import './mode-help-fix.js';
 import { state } from './modules/utils.js';
 import { audioEngine } from './modules/audio.js';
 import { loadAchievements, updateGlobalLevelUI } from './modules/stats.js';
