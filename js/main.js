@@ -20,7 +20,15 @@ document.addEventListener('DOMContentLoaded', () => {
   setupRestartControl();
   setDifficulty('easy');
   loadAchievements();
-  showWelcomeModal();
+
+  // O tutorial automático aparece somente na primeira visita deste navegador.
+  // O botão "Tutorial" continua podendo abrir o tutorial manualmente depois.
+  const tutorialSeenKey = 'mestre_tutorial_seen_v1';
+  if (localStorage.getItem(tutorialSeenKey) !== '1') {
+    showWelcomeModal();
+    localStorage.setItem(tutorialSeenKey, '1');
+  }
+
   const timerBtn = document.getElementById('timer-mode-btn');
   if (timerBtn) timerBtn.addEventListener('click', toggleTimerMode);
   const stats = state.modeStats[state.currentModeId] || { bestPPM: 0 };
