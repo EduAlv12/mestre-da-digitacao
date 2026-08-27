@@ -23,9 +23,14 @@ document.addEventListener('DOMContentLoaded', () => {
   setupChangelog();
   setupRestartControl();
   setDifficulty('easy');
-  // Garante que a frase inicial seja renderizada depois de todos os
-  // listeners e componentes estarem prontos, inclusive no primeiro acesso.
-  initTest();
+
+  // Se a primeira inicialização foi interrompida por alguma transição de UI,
+  // renderiza a frase somente quando o quadro ainda estiver vazio.
+  requestAnimationFrame(() => {
+    const textDisplay = document.getElementById('text-display');
+    if (!textDisplay?.textContent?.trim() || !state.currentText) initTest();
+  });
+
   loadAchievements();
   updateGlobalLevelUI();
 
