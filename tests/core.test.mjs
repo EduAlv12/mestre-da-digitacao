@@ -55,12 +55,13 @@ test('modo normal expõe continuação após a sessão', () => {
 test('prévia sonora não seleciona o perfil', () => {
   assert.match(ui, /modal-sound&&e\.target\.closest\('\.sound-preview-btn'\)\)return/);
   assert.match(ui, /audioEngine\.playPreview\(value\)/);
-  assert.match(audio, /playPreview\(profile = this\.profile\)/);
+  assert.match(audio, /playPreview\(profile=this\.profile\)/);
   assert.doesNotMatch(ui, /const currentProfile = audioEngine\.profile/);
 });
 
 test('prévia usa o mesmo caminho de síntese das teclas', () => {
-  assert.match(audio, /this\.playKey\(false\)/);
+  assert.match(audio, /this\.playKey\(false,profile\)/);
+  assert.match(audio, /profileOverride/);
 });
 
 test('modo memória realmente oculta o texto durante a fase de digitação', () => {
@@ -81,7 +82,8 @@ test('troca de modo cancela estado central de execução', () => {
   assert.match(modes, /clearTimeout\(state\.autoRestartTimeout\)/);
 });
 
-test('Contra-Relógio aposentado não permanece como ação visível', () => {
+test('Contra-Relógio aposentado não permanece como ação visível', async () => {
   assert.match(index, /timer-mode-btn/);
-  assert.match(await readFile(new URL('../js/ui-v3.js', import.meta.url), 'utf8'), /timer-mode-btn.*remove/);
+  const uiV3 = await readFile(new URL('../js/ui-v3.js', import.meta.url), 'utf8');
+  assert.match(uiV3, /timer-mode-btn.*remove/);
 });
