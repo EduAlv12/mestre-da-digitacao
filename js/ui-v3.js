@@ -41,8 +41,8 @@
     sheet.appendChild(head);
 
     const statsSection = document.createElement('section');
-    statsSection.className = 'ui-v3-group';
-    statsSection.innerHTML = '<span class="ui-v3-label">Resumo da sessão</span><div class="ui-v3-mobile-stats">' +
+    statsSection.className = 'ui-v3-group ui-v3-session-summary';
+    statsSection.innerHTML = '<div class="ui-v3-section-heading"><span class="ui-v3-label">Resumo das sessões</span><span class="ui-v3-section-note">Atual</span></div><div class="ui-v3-mobile-stats">' +
       '<div class="ui-v3-mobile-stat"><span>PPM</span><strong data-v3-stat="ppm">0</strong></div>' +
       '<div class="ui-v3-mobile-stat"><span>Precisão</span><strong data-v3-stat="accuracy">100%</strong></div>' +
       '<div class="ui-v3-mobile-stat"><span>Tempo</span><strong data-v3-stat="time">0s</strong></div>' +
