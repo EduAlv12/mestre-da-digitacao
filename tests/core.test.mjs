@@ -17,6 +17,7 @@ const wave=await read('../js/modes/wave.js');
 const rpg=await read('../js/modes/rpg.js');
 const utils=await read('../js/modules/utils.js');
 const uiV3=await read('../js/ui-v3.js');
+const html=await read('../index.html');
 
 test('núcleo rejeita colagem, drop e substituição',()=>{assert.match(inputController,/insertFromPaste/);assert.match(inputController,/insertFromDrop/);assert.match(inputController,/insertReplacementText/);assert.match(inputController,/preventDefault/)});
 test('contagem e áudio usam o input efetivo',()=>{assert.match(inputController,/const value=input\.value/);assert.match(inputController,/state\.totalTyped/);assert.match(inputController,/audioEngine\.playKey/);assert.match(index,/input-controller\.js/)});
@@ -32,7 +33,10 @@ test('prévia sonora não seleciona o perfil',()=>{assert.match(ui,/sound-previe
 test('prévia não fecha o modal nem salva a seleção',()=>{assert.match(ui,/sound-preview-btn/);assert.match(ui,/audioEngine\.playPreview\(value\)/);assert.doesNotMatch(ui,/setSoundProfile\(value\).*closeModal\(modalSound\)/)});
 test('Arco-Íris não faz mais parte do catálogo',()=>{assert.doesNotMatch(modes,/rainbowMode|rainbow:/);assert.doesNotMatch(modes,/Arco-Íris/);assert.doesNotMatch(utils,/rainbow:/)});
 test('ajuda contextual está no cabeçalho da área de digitação e fora do painel',()=>{assert.match(uiV3,/typing-mode-info/);assert.match(uiV3,/typing-mode-control/);assert.match(uiV3,/ids:\['difficulty-trigger','theme-trigger','sound-trigger'\]/);assert.doesNotMatch(uiV3,/ids:\['difficulty-trigger','theme-trigger','sound-trigger','mode-help-trigger'/)});
+test('painel não inclui o antigo controle de ajuda',()=>{assert.match(ui,/mode-help-trigger.*remove/);assert.doesNotMatch(uiV3,/mode-help-trigger'\]/)});
 test('interface reduz seleção/context menu acidentais e acompanha o teclado',()=>{assert.match(keyboard,/-webkit-touch-callout:none/);assert.match(keyboard,/document\.addEventListener\('contextmenu'/);assert.match(keyboard,/scrollIntoView\(\{behavior:'smooth'/);assert.match(keyboard,/scrollTo\(\{top:savedScrollY,behavior:'smooth'/)});
 test('tutorial possui navegação por clique e gesto',()=>{assert.match(index,/tutorial-navigation\.js/);assert.match(tutorial,/tutorial-next/);assert.match(tutorial,/tutorial-prev/);assert.match(tutorial,/touchstart/);assert.match(tutorial,/touchend/)});
+test('tutorial atualizado para dez modos',()=>{assert.match(index,/10 modos/);assert.doesNotMatch(index,/11 modos/);assert.match(index,/⚔️ RPG/);assert.doesNotMatch(index,/🌈 Arco-Íris/)});
 test('RPG continua escutando o ciclo próprio de batalha',()=>{assert.match(typing,/rpgReadyForContinue/);assert.match(rpg,/document\.dispatchEvent\(new CustomEvent\('rpgReadyForContinue'\)/)});
+test('modo de jogo é reposicionado para a caixa de texto',()=>{assert.match(uiV3,/typing-mode-control/);assert.match(uiV3,/tags\.insertBefore\(modeGroup/)});
 test('troca de modo destrói o anterior antes de inicializar o próximo',()=>{assert.match(modes,/currentMode\?\.destroy|currentMode&&currentMode\.destroy/);assert.match(modes,/initTest\(\{resetMode:false\}\)*/)});
