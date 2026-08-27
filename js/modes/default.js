@@ -12,9 +12,18 @@ export default {
     this.typed = ''; this.errors = 0; this.startTime = null;
     this.sessionChars = 0; this.sessionErrors = 0;
     const diff = state.currentDifficulty;
-    this.phaseTexts = Array.from({ length: 5 }, () => getNextSentence(diff));
+
+    // initTest() já escolheu a primeira frase pelo Phrase Engine. Não a
+    // descarte aqui: isso causava uma segunda seleção e tornava a inicialização
+    // difícil de rastrear. As quatro frases restantes são preparadas apenas
+    // para as fases seguintes.
+    const first = text || getNextSentence(diff);
+    this.phaseTexts = [
+      first,
+      ...Array.from({ length: 4 }, () => getNextSentence(diff))
+    ].filter(Boolean);
     this.phase = 0;
-    this.currentText = this.phaseTexts[0] || text || '';
+    this.currentText = this.phaseTexts[0] || '';
     state.currentText = this.currentText;
     this.render(); this.resetInput(); this.updateProgress(0);
   },
