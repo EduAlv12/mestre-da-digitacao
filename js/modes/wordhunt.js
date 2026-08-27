@@ -18,8 +18,7 @@ export default {
   showWord() {
     if (this.currentWordIndex >= this.totalWords) {
       const elapsed = this.elapsedSeconds();
-      const totalChars = this.words.reduce((sum, word) => sum + word.length, 0);
-      const wpm = Math.round((totalChars / 5) / (elapsed / 60));
+      const wpm = Math.round((this.correctChars / 5) / (elapsed / 60));
       const attempts = this.correctChars + this.errors;
       const accuracy = attempts > 0 ? Math.round((this.correctChars / attempts) * 100) : 100;
       document.dispatchEvent(new CustomEvent('modeEndTest', { detail: { accuracy, wpm, modeId: this.id } })); return;
