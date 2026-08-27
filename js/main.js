@@ -4,7 +4,7 @@ import { state } from './modules/utils.js';
 import { audioEngine } from './modules/audio.js';
 import { loadAchievements } from './modules/stats.js';
 import { setupTypingEvents } from './modules/typing.js';
-import { setDifficulty, setTheme, setSoundProfile, loadSavedSettings, setupModalTriggers, showWelcomeModal, setupShareButton, renderHistoryChart as renderChart } from './modules/ui.js';
+import { setDifficulty, setTheme, setSoundProfile, loadSavedSettings, setupModalTriggers, setupShareButton, renderHistoryChart as renderChart } from './modules/ui.js';
 import { loadSavedMode } from './modes/index.js';
 import { setupChangelog } from './modules/changelog.js';
 import { setupRestartControl } from './modules/restart-control.js';
@@ -25,8 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // temporizador próprio continuam usando seus cronômetros normalmente.
   document.getElementById('timer-mode-btn')?.remove();
 
-  const timerBtn = document.getElementById('timer-mode-btn');
-  if (timerBtn) timerBtn.remove();
   const stats = state.modeStats[state.currentModeId] || { bestPPM: 0 };
   const bestEl = document.getElementById('best-ppm-val');
   if (bestEl) bestEl.textContent = stats.bestPPM || 0;
