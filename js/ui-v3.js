@@ -1,4 +1,4 @@
-/* V3 UI: reorganiza apenas a apresentação. IDs e listeners existentes são preservados. */
+/* V3 UI: reorganiza a apresentação sem alterar a lógica dos modos. */
 (() => {
   const css = document.createElement('link');
   css.rel = 'stylesheet';
@@ -14,25 +14,16 @@
     if (!top) return;
 
     const open = document.createElement('button');
-    open.type = 'button';
-    open.className = 'ui-v3-open';
-    open.id = 'ui-v3-open';
-    open.setAttribute('aria-label', 'Abrir painel');
-    open.textContent = '☰ Painel';
+    open.type = 'button'; open.className = 'ui-v3-open'; open.id = 'ui-v3-open';
+    open.setAttribute('aria-label', 'Abrir painel'); open.textContent = '☰ Painel';
     top.appendChild(open);
 
     const drawer = document.createElement('div');
-    drawer.className = 'ui-v3-drawer';
-    drawer.id = 'ui-v3-drawer';
-
+    drawer.className = 'ui-v3-drawer'; drawer.id = 'ui-v3-drawer';
     const backdrop = document.createElement('div');
-    backdrop.className = 'ui-v3-backdrop-close';
-    backdrop.setAttribute('aria-hidden', 'true');
-
+    backdrop.className = 'ui-v3-backdrop-close'; backdrop.setAttribute('aria-hidden', 'true');
     const sheet = document.createElement('aside');
-    sheet.className = 'ui-v3-sheet';
-    sheet.setAttribute('role', 'dialog');
-    sheet.setAttribute('aria-modal', 'true');
+    sheet.className = 'ui-v3-sheet'; sheet.setAttribute('role', 'dialog'); sheet.setAttribute('aria-modal', 'true');
     sheet.setAttribute('aria-label', 'Painel de configurações e estatísticas');
 
     const head = document.createElement('div');
@@ -54,37 +45,36 @@
       {title:'Treino', ids:['mode-trigger','difficulty-trigger','theme-trigger','sound-trigger']},
       {title:'Extras', ids:['achievements-trigger','mode-help-trigger','feedback-trigger']}
     ];
-
     groups.forEach(group => {
-      const section = document.createElement('section');
-      section.className = 'ui-v3-group';
-      const label = document.createElement('span');
-      label.className = 'ui-v3-label';
-      label.textContent = group.title;
+      const section = document.createElement('section'); section.className = 'ui-v3-group';
+      const label = document.createElement('span'); label.className = 'ui-v3-label'; label.textContent = group.title;
       section.appendChild(label);
-      const grid = document.createElement('div');
-      grid.className = 'ui-v3-controls';
+      const grid = document.createElement('div'); grid.className = 'ui-v3-controls';
       group.ids.forEach(id => {
-        const node = document.getElementById(id);
-        const groupNode = node?.closest('.control-group');
+        const node = document.getElementById(id); const groupNode = node?.closest('.control-group');
         if (groupNode) grid.appendChild(groupNode);
       });
-      section.appendChild(grid);
-      sheet.appendChild(section);
+      section.appendChild(grid); sheet.appendChild(section);
     });
 
-    drawer.append(backdrop, sheet);
-    document.body.appendChild(drawer);
+    drawer.append(backdrop, sheet); document.body.appendChild(drawer);
+
+    // Os modais originais ficam no DOM principal. Ao movê-los para o body,
+    // eles deixam de ficar presos ao stacking context do painel e podem abrir
+    // sobre ele. Os listeners originais continuam válidos porque os elementos
+    // não são recriados, apenas reparentados.
+    ['modal-modes','modal-difficulty','modal-theme','modal-sound','modal-achievements','modal-custom-text','modal-mode-help'].forEach(id => {
+      const modal = document.getElementById(id);
+      if (modal && modal.parentElement !== document.body) document.body.appendChild(modal);
+    });
 
     const syncStats = () => {
       const map = {ppm:'ppm-val', accuracy:'accuracy-val', time:'timer-val', best:'best-ppm-val'};
       Object.entries(map).forEach(([key,id]) => {
-        const source = document.getElementById(id);
-        const target = sheet.querySelector(`[data-v3-stat="${key}"]`);
+        const source = document.getElementById(id); const target = sheet.querySelector(`[data-v3-stat="${key}"]`);
         if (source && target) target.textContent = source.textContent;
       });
     };
-
     const close = () => { drawer.classList.remove('is-open'); document.body.classList.remove('ui-v3-lock'); };
     const show = () => { syncStats(); drawer.classList.add('is-open'); document.body.classList.add('ui-v3-lock'); sheet.querySelector('.ui-v3-close')?.focus(); };
     open.addEventListener('click', show);
