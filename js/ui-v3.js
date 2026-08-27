@@ -7,7 +7,12 @@
     const controls=document.querySelector('.header-controls'),typing=document.getElementById('typing-box-container'),tags=document.querySelector('.typing-header-tags');
     if(!controls||!typing||!tags)return;
     const modeGroup=document.getElementById('mode-trigger')?.closest('.control-group');
-    if(modeGroup&&modeGroup.parentElement!==tags){modeGroup.classList.add('typing-mode-control');tags.insertBefore(modeGroup,tags.firstChild);}
+    const difficultyTag=document.getElementById('difficulty-tag');
+    if(modeGroup&&modeGroup.parentElement!==tags){
+      modeGroup.classList.add('typing-mode-control');
+      if(difficultyTag&&difficultyTag.parentElement===tags)difficultyTag.insertAdjacentElement('afterend',modeGroup);
+      else tags.appendChild(modeGroup);
+    }
     const helpGroup=document.getElementById('mode-help-trigger')?.closest('.control-group'),status=document.getElementById('mode-status-tag');
     if(helpGroup){const help=document.getElementById('mode-help-trigger');if(help){help.classList.remove('select-trigger');help.classList.add('mode-info-btn');help.innerHTML='ℹ️';help.setAttribute('aria-label','Informações do modo atual');help.setAttribute('title','Como funciona este modo');}helpGroup.classList.add('typing-mode-info');if(status&&status.parentElement===tags){const row=document.createElement('div');row.className='mode-status-info-row';status.replaceWith(row);row.append(status,helpGroup);}}
     const tutorialText=document.querySelector('.tutorial-step[data-step="2"] .tutorial-text'),tutorialDemo=document.querySelector('.tutorial-step[data-step="2"] .tutorial-demo');if(tutorialText)tutorialText.innerHTML='Escolha entre <strong>10 modos de jogo</strong> únicos! Cada modo tem mecânicas diferentes e medalhas exclusivas.';if(tutorialDemo)tutorialDemo.textContent='🔥 Fúria • 💀 Sobrevivência • 🎯 Sniper • 🧩 WordHunt • 💰 Cassino • 🏃 Maratona • 🧠 Memória • 🌊 Onda • ⚔️ RPG';
