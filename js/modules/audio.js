@@ -9,6 +9,7 @@ export class AudioEngine {
     this.masterGain = null;
     this._initialized = false;
     this._noiseBuffer = null;
+    this._previewToken = 0;
   }
 
   init() {
@@ -38,16 +39,12 @@ export class AudioEngine {
   }
 
   _resume() {
-    if (this.ctx?.state === 'suspended') {
-      this.ctx.resume().catch(() => {});
-    }
+    if (this.ctx?.state === 'suspended') this.ctx.resume().catch(() => {});
   }
 
   setVolume(val) {
     this.volume = Math.max(0, Math.min(1, parseFloat(val) || 0));
-    if (this.masterGain && this.ctx) {
-      this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
-    }
+    if (this.masterGain && this.ctx) this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
   }
 
   setProfile(profile) { this.profile = profile; }
@@ -141,22 +138,17 @@ export class AudioEngine {
     osc.type = waveType;
     osc.frequency.setValueAtTime(baseFreq + detune, now);
     osc.frequency.exponentialRampToValueAtTime(Math.max(40, endFreq), now + duration);
-
     tone.type = 'lowpass';
     tone.frequency.setValueAtTime(toneFilter, now);
     tone.frequency.exponentialRampToValueAtTime(Math.max(120, toneFilter * 0.45), now + duration);
     osc.connect(tone);
     tone.connect(gain);
     gain.connect(this.compressor);
-
     gain.gain.setValueAtTime(0.0001, now);
     gain.gain.exponentialRampToValueAtTime(toneGain, now + 0.0015);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
     osc.start(now);
     osc.stop(now + duration + 0.005);
-
-    // A short filtered noise transient supplies the physical "impact" that a
-    // bare oscillator lacks, making the profiles read more like key switches.
     this._playNoise(now, duration * 0.72, noiseGain, noiseFilter, noiseFreq);
   }
 
@@ -199,44 +191,29 @@ export class AudioEngine {
     osc.stop(now + 0.085);
   }
 
-  playPreview() {
-    if (this.profile === 'silent' || !this.enabled) return;
+  // Preview is deliberately built from the exact same playKey() path used
+  // during typing. It never changes the user's selected profile.
+  playPreview(profile = this.profile) {
+    if (!this.enabled || profile === 'silent') return;
     this.init();
     if (!this.ctx || this.ctx.state === 'closed') return;
-    const notes = [523, 659, 784];
-    notes.forEach((freq, i) => {
-      setTimeout(() => this.playKeyNote(freq, 0.08, 0.7), i * 150);
-    });
-  }
 
-  playKeyNote(freq, duration = 0.08, volumeMul = 0.7) {
-    if (this.profile === 'silent' || !this.enabled) return;
-    this.init();
-    if (!this.ctx || this.ctx.state === 'closed') return;
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    const detune = (Math.random() - 0.5) * 18;
-    const waveType = this.profile === 'pop' ? 'sine' : this.profile === 'retro' || this.profile === 'typewriter' || this.profile === 'clack' ? 'square' : 'triangle';
-    const baseGain = this.profile === 'deep' ? 0.12 : 0.09;
-    osc.type = waveType;
-    osc.frequency.setValueAtTime(freq + detune, now);
-    osc.frequency.exponentialRampToValueAtTime(freq * 0.42, now + duration);
-    osc.connect(gain);
-    gain.connect(this.compressor);
-    const finalGain = baseGain * volumeMul;
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(finalGain, now + 0.003);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-    osc.start(now);
-    osc.stop(now + duration + 0.005);
+    const token = ++this._previewToken;
+    const previousProfile = this.profile;
+    this.profile = profile;
+    [0, 145, 290].forEach(delay => {
+      setTimeout(() => {
+        if (token === this._previewToken) this.playKey(false);
+      }, delay);
+    });
+    setTimeout(() => {
+      if (token === this._previewToken) this.profile = previousProfile;
+    }, 470);
   }
 }
 
 export const audioEngine = new AudioEngine();
 
-// Unlock/resume on a real user gesture. This is especially important on
-// mobile browsers, where AudioContext normally starts suspended.
 const unlockAudio = () => audioEngine.init();
 document.addEventListener('pointerdown', unlockAudio, { passive: true });
 document.addEventListener('keydown', unlockAudio, { passive: true });
