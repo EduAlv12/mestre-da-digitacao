@@ -1,4 +1,5 @@
 // js/main.js
+import './ui-v3.js';
 import { state } from './modules/utils.js';
 import { audioEngine } from './modules/audio.js';
 import { loadAchievements } from './modules/stats.js';
