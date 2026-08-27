@@ -1,11 +1,19 @@
 /* V3 UI: reorganiza a apresentação sem alterar a lógica dos modos. */
 (() => {
+  // Evita o "flash" da interface legada enquanto a V3 é montada.
+  // O bloqueio é aplicado imediatamente, antes do DOMContentLoaded.
+  const bootStyle = document.createElement('style');
+  bootStyle.id = 'ui-v3-boot-style';
+  bootStyle.textContent = `body{visibility:hidden!important}body.ui-v3-ready{visibility:visible!important}`;
+  document.head.appendChild(bootStyle);
+
   const css=document.createElement('link');css.rel='stylesheet';css.href='./ui-v3.css';document.head.appendChild(css);
   const interactionCss=document.createElement('link');interactionCss.rel='stylesheet';interactionCss.href='./interaction-fixes.css';document.head.appendChild(interactionCss);
+
   const init=()=>{
     document.getElementById('timer-mode-btn')?.remove();
     const controls=document.querySelector('.header-controls'),typing=document.getElementById('typing-box-container'),tags=document.querySelector('.typing-header-tags');
-    if(!controls||!typing||!tags)return;
+    if(!controls||!typing||!tags){document.body.classList.add('ui-v3-ready');return;}
     const modeGroup=document.getElementById('mode-trigger')?.closest('.control-group');
     const difficultyTag=document.getElementById('difficulty-tag');
     if(modeGroup&&modeGroup.parentElement!==tags){
@@ -16,8 +24,8 @@
     const helpGroup=document.getElementById('mode-help-trigger')?.closest('.control-group'),status=document.getElementById('mode-status-tag');
     if(helpGroup){const help=document.getElementById('mode-help-trigger');if(help){help.classList.remove('select-trigger');help.classList.add('mode-info-btn');help.innerHTML='ℹ️';help.setAttribute('aria-label','Informações do modo atual');help.setAttribute('title','Como funciona este modo');}helpGroup.classList.add('typing-mode-info');if(status&&status.parentElement===tags){const row=document.createElement('div');row.className='mode-status-info-row';status.replaceWith(row);row.append(status,helpGroup);}}
     const tutorialText=document.querySelector('.tutorial-step[data-step="2"] .tutorial-text'),tutorialDemo=document.querySelector('.tutorial-step[data-step="2"] .tutorial-demo');if(tutorialText)tutorialText.innerHTML='Escolha entre <strong>10 modos de jogo</strong> únicos! Cada modo tem mecânicas diferentes e medalhas exclusivas.';if(tutorialDemo)tutorialDemo.textContent='🔥 Fúria • 💀 Sobrevivência • 🎯 Sniper • 🧩 WordHunt • 💰 Cassino • 🏃 Maratona • 🧠 Memória • 🌊 Onda • ⚔️ RPG';
-    if(document.querySelector('.ui-v3-drawer')){controls.style.display='none';return;}
-    const header=document.querySelector('.app-header'),top=header?.firstElementChild;if(!header||!top)return;
+    if(document.querySelector('.ui-v3-drawer')){controls.style.display='none';document.body.classList.add('ui-v3-ready');return;}
+    const header=document.querySelector('.app-header'),top=header?.firstElementChild;if(!header||!top){document.body.classList.add('ui-v3-ready');return;}
     const open=document.createElement('button');open.type='button';open.className='ui-v3-open';open.id='ui-v3-open';open.setAttribute('aria-label','Abrir painel');open.textContent='☰ Painel';top.appendChild(open);
     const drawer=document.createElement('div');drawer.className='ui-v3-drawer';drawer.id='ui-v3-drawer';const backdrop=document.createElement('div');backdrop.className='ui-v3-backdrop-close';
     const sheet=document.createElement('aside');sheet.className='ui-v3-sheet';sheet.setAttribute('role','dialog');sheet.setAttribute('aria-modal','true');sheet.setAttribute('aria-label','Painel de configurações e estatísticas');
@@ -30,6 +38,7 @@
     const syncStats=()=>{const map={ppm:'ppm-val',accuracy:'accuracy-val',time:'timer-val',best:'best-ppm-val'};Object.entries(map).forEach(([key,id])=>{const source=document.getElementById(id),target=sheet.querySelector(`[data-v3-stat="${key}"]`);if(source&&target)target.textContent=source.textContent})};
     const close=()=>{drawer.classList.remove('is-open');document.body.classList.remove('ui-v3-lock')};const show=()=>{syncStats();drawer.classList.add('is-open');document.body.classList.add('ui-v3-lock');sheet.querySelector('.ui-v3-close')?.focus()};
     open.addEventListener('click',show);head.querySelector('.ui-v3-close').addEventListener('click',close);backdrop.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});controls.style.display='none';
+    document.body.classList.add('ui-v3-ready');
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
