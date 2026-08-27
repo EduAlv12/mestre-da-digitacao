@@ -33,12 +33,22 @@
     sheet.className = 'ui-v3-sheet';
     sheet.setAttribute('role', 'dialog');
     sheet.setAttribute('aria-modal', 'true');
-    sheet.setAttribute('aria-label', 'Painel de configurações');
+    sheet.setAttribute('aria-label', 'Painel de configurações e estatísticas');
 
     const head = document.createElement('div');
     head.className = 'ui-v3-head';
     head.innerHTML = '<h2>⚙️ Painel</h2><button type="button" class="ui-v3-close" aria-label="Fechar painel">×</button>';
     sheet.appendChild(head);
+
+    const statsSection = document.createElement('section');
+    statsSection.className = 'ui-v3-group';
+    statsSection.innerHTML = '<span class="ui-v3-label">Resumo da sessão</span><div class="ui-v3-mobile-stats">' +
+      '<div class="ui-v3-mobile-stat"><span>PPM</span><strong data-v3-stat="ppm">0</strong></div>' +
+      '<div class="ui-v3-mobile-stat"><span>Precisão</span><strong data-v3-stat="accuracy">100%</strong></div>' +
+      '<div class="ui-v3-mobile-stat"><span>Tempo</span><strong data-v3-stat="time">0s</strong></div>' +
+      '<div class="ui-v3-mobile-stat"><span>Recorde</span><strong data-v3-stat="best">0</strong></div>' +
+      '</div>';
+    sheet.appendChild(statsSection);
 
     const groups = [
       {title:'Treino', ids:['mode-trigger','difficulty-trigger','theme-trigger','sound-trigger']},
@@ -66,8 +76,17 @@
     drawer.append(backdrop, sheet);
     document.body.appendChild(drawer);
 
+    const syncStats = () => {
+      const map = {ppm:'ppm-val', accuracy:'accuracy-val', time:'timer-val', best:'best-ppm-val'};
+      Object.entries(map).forEach(([key,id]) => {
+        const source = document.getElementById(id);
+        const target = sheet.querySelector(`[data-v3-stat="${key}"]`);
+        if (source && target) target.textContent = source.textContent;
+      });
+    };
+
     const close = () => { drawer.classList.remove('is-open'); document.body.classList.remove('ui-v3-lock'); };
-    const show = () => { drawer.classList.add('is-open'); document.body.classList.add('ui-v3-lock'); sheet.querySelector('.ui-v3-close')?.focus(); };
+    const show = () => { syncStats(); drawer.classList.add('is-open'); document.body.classList.add('ui-v3-lock'); sheet.querySelector('.ui-v3-close')?.focus(); };
     open.addEventListener('click', show);
     head.querySelector('.ui-v3-close').addEventListener('click', close);
     backdrop.addEventListener('click', close);
