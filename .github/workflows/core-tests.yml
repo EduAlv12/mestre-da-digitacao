@@ -5,9 +5,11 @@ on:
     branches:
       - main
       - fix/auditoria-modos
+      - ui-foundation-v1
   pull_request:
     branches:
       - main
+      - ui-foundation-v1
 
 jobs:
   test:
