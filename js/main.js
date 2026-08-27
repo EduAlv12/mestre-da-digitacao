@@ -1,9 +1,10 @@
 // js/main.js
 import './ui-v3.js';
+import '../js/keyboard-focus.js';
 import { state } from './modules/utils.js';
 import { audioEngine } from './modules/audio.js';
 import { loadAchievements } from './modules/stats.js';
-import { setupTypingEvents } from './modules/typing.js';
+import { setupTypingEvents, initTest } from './modules/typing.js';
 import { setDifficulty, setTheme, setSoundProfile, loadSavedSettings, setupModalTriggers, setupShareButton, renderHistoryChart as renderChart } from './modules/ui.js';
 import { loadSavedMode } from './modes/index.js';
 import { setupChangelog } from './modules/changelog.js';
@@ -22,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
   setupChangelog();
   setupRestartControl();
   setDifficulty('easy');
+  // Garante que a frase inicial seja renderizada depois de todos os
+  // listeners e componentes estarem prontos, inclusive no primeiro acesso.
+  initTest();
   loadAchievements();
   updateGlobalLevelUI();
 
