@@ -27,14 +27,25 @@ const init = () => {
   };
 
   let timer = null;
+  const stopTimer = () => {
+    clearInterval(timer);
+    timer = null;
+  };
+
   const startTimer = () => {
     if (state.isRunning) return;
     state.isRunning = true;
     state.startTime = performance.now();
     const mode = getModeHandler();
     if (mode && Object.prototype.hasOwnProperty.call(mode, 'startTime') && !mode.startTime) mode.startTime = state.startTime;
-    clearInterval(timer);
+    stopTimer();
     timer = setInterval(() => {
+      // Troca de modo/reinício coloca isRunning=false. Não deixe o timer antigo
+      // continuar atualizando as métricas da nova partida.
+      if (!state.isRunning) {
+        stopTimer();
+        return;
+      }
       const modeNow = getModeHandler();
       const timerEl = document.getElementById('timer-val');
       if (timerEl && !modeNow?.hasTimer) timerEl.textContent = `${getElapsed()}s`;
@@ -43,6 +54,7 @@ const init = () => {
   };
 
   const finish = (result) => {
+    stopTimer();
     const modeId = getModeId();
     document.dispatchEvent(new CustomEvent('modeEndTest', {
       detail: {
@@ -53,7 +65,7 @@ const init = () => {
     }));
   };
 
-  const handleInput = (event) => {
+  const handleInput = () => {
     if (input.disabled || document.body.classList.contains('tutorial-open')) return;
     const value = input.value;
     const mode = getModeHandler();
@@ -88,8 +100,7 @@ const init = () => {
   input.addEventListener('contextmenu', event => event.preventDefault());
 
   document.addEventListener('modeResetTest', () => {
-    clearInterval(timer);
-    timer = null;
+    stopTimer();
     state._controllerLastLength = 0;
   });
 };
