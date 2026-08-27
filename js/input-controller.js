@@ -40,8 +40,6 @@ const init = () => {
     if (mode && Object.prototype.hasOwnProperty.call(mode, 'startTime') && !mode.startTime) mode.startTime = state.startTime;
     stopTimer();
     timer = setInterval(() => {
-      // Troca de modo/reinício coloca isRunning=false. Não deixe o timer antigo
-      // continuar atualizando as métricas da nova partida.
       if (!state.isRunning) {
         stopTimer();
         return;
@@ -74,15 +72,22 @@ const init = () => {
     if (value.length > 0 && !state.isRunning) startTimer();
 
     const previousLength = Number(state._controllerLastLength) || 0;
-    if (value.length > previousLength) {
-      state.totalTyped = (Number(state.totalTyped) || 0) + (value.length - previousLength);
+    const inserted = value.length - previousLength;
+    if (inserted > 0) {
+      state.totalTyped = (Number(state.totalTyped) || 0) + inserted;
     }
     state._controllerLastLength = value.length;
 
     const result = mode.handleInput(value) || {};
     if (result.accuracy !== undefined || result.wpm !== undefined) updateMetrics(result);
-    if (result.playError) audioEngine.playError?.();
-    else if (result.playSound) audioEngine.playKey?.();
+
+    // Sound belongs to the input event, not to a mode-specific return flag.
+    // Several modes intentionally omit playSound for ordinary correct keys.
+    // A negative length means deletion/reset, so it must stay silent.
+    if (inserted > 0) {
+      if (result.playError) audioEngine.playErrorSound?.();
+      else audioEngine.playKey?.(false);
+    }
 
     if (result.done) finish(result);
   };
