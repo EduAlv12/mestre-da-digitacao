@@ -8,10 +8,13 @@ import { setDifficulty, setTheme, setSoundProfile, loadSavedSettings, setupModal
 import { loadSavedMode } from './modes/index.js';
 import { setupChangelog } from './modules/changelog.js';
 import { setupRestartControl } from './modules/restart-control.js';
+import { normalizeGlobalProgress } from './modules/global-progress.js';
+import { updateGlobalLevelUI } from './modules/stats.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🚀 Mestre da Digitação iniciado!');
   loadSavedSettings();
+  normalizeGlobalProgress();
   loadSavedMode();
   setupModalTriggers();
   setupShareButton();
@@ -20,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupRestartControl();
   setDifficulty('easy');
   loadAchievements();
+  updateGlobalLevelUI();
 
   // Contra-Relógio foi removido da interface. Os modos que possuem
   // temporizador próprio continuam usando seus cronômetros normalmente.
