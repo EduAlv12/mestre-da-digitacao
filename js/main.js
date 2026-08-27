@@ -21,13 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setDifficulty('easy');
   loadAchievements();
 
-  // O tutorial automático aparece somente na primeira visita deste navegador.
-  // O botão "Tutorial" continua podendo abrir o tutorial manualmente depois.
-  const tutorialSeenKey = 'mestre_tutorial_seen_v1';
-  if (localStorage.getItem(tutorialSeenKey) !== '1') {
-    showWelcomeModal();
-    localStorage.setItem(tutorialSeenKey, '1');
-  }
+  // O tutorial não é mais aberto automaticamente.
+  // Ele permanece disponível pelo botão "Tutorial" quando o usuário quiser.
 
   const timerBtn = document.getElementById('timer-mode-btn');
   if (timerBtn) timerBtn.addEventListener('click', toggleTimerMode);
