@@ -13,6 +13,14 @@
     const top = header.firstElementChild;
     if (!top) return;
 
+    // Contra-Relógio foi removido da experiência. Os modos com temporizador
+    // próprio continuam funcionando normalmente.
+    document.getElementById('timer-mode-btn')?.remove();
+    const timerImportNotice = document.querySelector('.tutorial-step[data-step="3"] .tutorial-text');
+    const timerDemoNotice = document.querySelector('.tutorial-step[data-step="3"] .tutorial-demo');
+    if (timerImportNotice) timerImportNotice.innerHTML = 'Personalize <strong>Temas</strong> e <strong>Sons</strong> para deixar seu treino do seu jeito.';
+    if (timerDemoNotice) timerDemoNotice.textContent = '🎨 Temas • 🔊 Sons';
+
     const open = document.createElement('button');
     open.type = 'button'; open.className = 'ui-v3-open'; open.id = 'ui-v3-open';
     open.setAttribute('aria-label', 'Abrir painel'); open.textContent = '☰ Painel';
@@ -59,10 +67,6 @@
 
     drawer.append(backdrop, sheet); document.body.appendChild(drawer);
 
-    // Os modais originais ficam no DOM principal. Ao movê-los para o body,
-    // eles deixam de ficar presos ao stacking context do painel e podem abrir
-    // sobre ele. Os listeners originais continuam válidos porque os elementos
-    // não são recriados, apenas reparentados.
     ['modal-modes','modal-difficulty','modal-theme','modal-sound','modal-achievements','modal-custom-text','modal-mode-help'].forEach(id => {
       const modal = document.getElementById(id);
       if (modal && modal.parentElement !== document.body) document.body.appendChild(modal);
