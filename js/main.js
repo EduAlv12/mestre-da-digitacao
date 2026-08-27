@@ -16,29 +16,23 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('🚀 Mestre da Digitação iniciado!');
   loadSavedSettings();
   normalizeGlobalProgress();
+
+  // Restaura o modo antes da primeira partida. loadSavedMode apenas seleciona
+  // o modo; a partida é inicializada uma única vez logo abaixo.
   loadSavedMode();
   setupModalTriggers();
   setupShareButton();
   setupTypingEvents();
   setupChangelog();
   setupRestartControl();
-  setDifficulty('easy');
 
-  // A dificuldade inicial já chama initTest(). Esta segunda verificação é
-  // deliberadamente defensiva: alguns modos podem restaurar o estado durante
-  // a primeira inicialização. Nunca reinicializa uma frase válida.
-  const ensureInitialSentence = () => {
-    const textDisplay = document.getElementById('text-display');
-    if (!state.currentText || !textDisplay?.textContent?.trim()) initTest();
-  };
-  requestAnimationFrame(ensureInitialSentence);
-  setTimeout(ensureInitialSentence, 80);
+  // Uma única inicialização inicial evita que setMode(), setDifficulty() e
+  // verificações defensivas disputem a primeira frase.
+  setDifficulty(state.currentDifficulty || 'easy');
 
   loadAchievements();
   updateGlobalLevelUI();
 
-  // Contra-Relógio foi removido da interface. Os modos que possuem
-  // temporizador próprio continuam usando seus cronômetros normalmente.
   document.getElementById('timer-mode-btn')?.remove();
 
   const stats = state.modeStats[state.currentModeId] || { bestPPM: 0 };
