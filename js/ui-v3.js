@@ -6,6 +6,10 @@
   document.head.appendChild(css);
 
   const init = () => {
+    // Contra-Relógio foi aposentado da experiência. Os modos com
+    // temporizador próprio continuam funcionando normalmente.
+    document.getElementById('timer-mode-btn')?.remove();
+
     if (window.matchMedia('(min-width: 761px)').matches) return;
     const header = document.querySelector('.app-header');
     const controls = document.querySelector('.header-controls');
@@ -13,9 +17,6 @@
     const top = header.firstElementChild;
     if (!top) return;
 
-    // Contra-Relógio foi removido da experiência. Os modos com temporizador
-    // próprio continuam funcionando normalmente.
-    document.getElementById('timer-mode-btn')?.remove();
     const timerImportNotice = document.querySelector('.tutorial-step[data-step="3"] .tutorial-text');
     const timerDemoNotice = document.querySelector('.tutorial-step[data-step="3"] .tutorial-demo');
     if (timerImportNotice) timerImportNotice.innerHTML = 'Personalize <strong>Temas</strong> e <strong>Sons</strong> para deixar seu treino do seu jeito.';
