@@ -2,6 +2,7 @@
 import './ui-v3.js';
 import './keyboard-focus.js';
 import './input-controller.js';
+import './tutorial-navigation.js';
 import { state } from './modules/utils.js';
 import { audioEngine } from './modules/audio.js';
 import { loadAchievements } from './modules/stats.js';
