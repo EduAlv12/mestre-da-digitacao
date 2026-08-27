@@ -63,6 +63,15 @@ const init = () => {
     }));
   };
 
+  const syncAfterProgrammaticReset = () => {
+    // Several modes advance internally by assigning input.value = ''. That
+    // does not emit an input event, so the controller must reset its baseline
+    // or the first character of the next phrase is treated as a deletion.
+    queueMicrotask(() => {
+      if (input.value.length === 0) state._controllerLastLength = 0;
+    });
+  };
+
   const handleInput = () => {
     if (input.disabled || document.body.classList.contains('tutorial-open')) return;
     const value = input.value;
@@ -73,23 +82,19 @@ const init = () => {
 
     const previousLength = Number(state._controllerLastLength) || 0;
     const inserted = value.length - previousLength;
-    if (inserted > 0) {
-      state.totalTyped = (Number(state.totalTyped) || 0) + inserted;
-    }
+    if (inserted > 0) state.totalTyped = (Number(state.totalTyped) || 0) + inserted;
     state._controllerLastLength = value.length;
 
     const result = mode.handleInput(value) || {};
     if (result.accuracy !== undefined || result.wpm !== undefined) updateMetrics(result);
 
-    // Sound belongs to the input event, not to a mode-specific return flag.
-    // Several modes intentionally omit playSound for ordinary correct keys.
-    // A negative length means deletion/reset, so it must stay silent.
     if (inserted > 0) {
       if (result.playError) audioEngine.playErrorSound?.();
       else audioEngine.playKey?.(false);
     }
 
     if (result.done) finish(result);
+    syncAfterProgrammaticReset();
   };
 
   input.addEventListener('input', handleInput);
@@ -97,9 +102,7 @@ const init = () => {
     if (event.key === ' ') trackSpaceKey();
   });
   input.addEventListener('beforeinput', event => {
-    if (/insertFromPaste|insertFromDrop|insertReplacementText|insertFromYank/.test(event.inputType)) {
-      event.preventDefault();
-    }
+    if (/insertFromPaste|insertFromDrop|insertReplacementText|insertFromYank/.test(event.inputType)) event.preventDefault();
   });
   input.addEventListener('paste', event => event.preventDefault());
   input.addEventListener('contextmenu', event => event.preventDefault());
