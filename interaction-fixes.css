@@ -1,0 +1,17 @@
+.typing-header-tags{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;}
+.typing-header-tags>.typing-mode-control{order:2;flex:0 0 auto;display:flex;align-items:center;}
+.typing-header-tags>.difficulty-tag{order:1;}
+.typing-header-tags>.countdown-tag{order:3;}
+.typing-header-tags>.mode-status-info-row{order:4;}
+.typing-mode-control label,.typing-mode-info label{display:none!important;}
+.typing-mode-control .select-trigger{min-height:32px;padding:5px 10px;border-radius:999px;font-size:.72rem;white-space:nowrap;}
+.mode-status-info-row{display:inline-flex!important;align-items:center;justify-content:center;gap:6px;min-width:0;}
+.typing-mode-info .control-group{display:flex;align-items:center;}
+.mode-info-btn{margin:0!important;}
+.marathon-current{display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;min-height:92px;}
+.marathon-current small{font-size:.7rem;color:var(--text-muted);}
+.marathon-word{font-family:'Fira Code',monospace;font-size:clamp(1.15rem,4.5vw,1.65rem);letter-spacing:.015em;line-height:1.55;max-width:100%;word-break:break-word;}
+.marathon-upcoming{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;max-height:42px;overflow:hidden;opacity:.5;font-size:.66rem;}
+.marathon-upcoming span{padding:3px 6px;border:1px solid var(--card-border);border-radius:999px;white-space:nowrap;}
+@media(max-width:760px){.typing-header-tags{justify-content:flex-start;align-items:center;}.typing-mode-control .select-trigger{font-size:.6rem;min-height:27px;padding:4px 8px;}.mode-info-btn{width:27px;height:27px;flex-basis:27px;font-size:14px;}.marathon-current{min-height:82px;}.marathon-upcoming{font-size:.58rem;}}
+@media(prefers-reduced-motion:reduce){.keyboard-follow-transition{scroll-behavior:auto;}}
