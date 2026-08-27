@@ -1,10 +1,10 @@
 // js/main.js
 import './ui-v3.js';
-import '../js/keyboard-focus.js';
+import './keyboard-focus.js';
+import './input-controller.js';
 import { state } from './modules/utils.js';
 import { audioEngine } from './modules/audio.js';
 import { loadAchievements } from './modules/stats.js';
-import { setupTypingEvents, initTest } from './modules/typing.js';
 import { setDifficulty, setTheme, setSoundProfile, loadSavedSettings, setupModalTriggers, setupShareButton, renderHistoryChart as renderChart } from './modules/ui.js';
 import { loadSavedMode } from './modes/index.js';
 import { setupChangelog } from './modules/changelog.js';
@@ -17,17 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSavedSettings();
   normalizeGlobalProgress();
 
-  // Restaura o modo antes da primeira partida. loadSavedMode apenas seleciona
-  // o modo; a partida é inicializada uma única vez logo abaixo.
+  // Restaura apenas o modo. A primeira partida é criada uma única vez por
+  // setDifficulty(), depois que todos os elementos da interface existem.
   loadSavedMode();
+  setupTypingEventsFallback();
   setupModalTriggers();
   setupShareButton();
-  setupTypingEvents();
   setupChangelog();
   setupRestartControl();
 
-  // Uma única inicialização inicial evita que setMode(), setDifficulty() e
-  // verificações defensivas disputem a primeira frase.
   setDifficulty(state.currentDifficulty || 'easy');
 
   loadAchievements();
@@ -45,3 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('mestre_mode_stats', JSON.stringify(state.modeStats));
   });
 });
+
+// O controlador novo (input-controller.js) é a única fonte de eventos de
+// digitação. Este fallback mantém compatibilidade caso uma página antiga
+// tenha sido carregada sem ele, sem registrar um segundo listener quando o
+// controlador novo já estiver ativo.
+function setupTypingEventsFallback() {
+  const input = document.getElementById('hidden-input');
+  if (!input || input.dataset.inputControllerReady === 'true') return;
+  console.warn('Controlador de entrada ainda não foi inicializado.');
+}
