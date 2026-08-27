@@ -2,7 +2,6 @@
 import { state, saveState, getModeStats } from '../modules/utils.js';
 import { initTest } from '../modules/typing.js';
 import { disableTimerMode, renderHistoryChart } from '../modules/ui.js';
-
 import defaultMode from './default.js';
 import furyMode from './fury.js';
 import survivalMode from './survival.js';
@@ -16,18 +15,13 @@ import rpgMode from './rpg.js';
 import rainbowMode from './rainbow.js';
 
 const MODES = { default: defaultMode, fury: furyMode, survival: survivalMode, sniper: sniperMode, wordhunt: wordhuntMode, casino: casinoMode, marathon: marathonMode, memory: memoryMode, wave: waveMode, rpg: rpgMode, rainbow: rainbowMode };
-
 export const MODE_NAMES = { default:'📖 Padrão', fury:'🔥 Fúria', survival:'💀 Sobrevivência', sniper:'🎯 Precisão Extrema', wordhunt:'🧩 Caça-Palavras', casino:'💰 Cassino', marathon:'🏃 Maratona', memory:'🧠 Memória', wave:'🌊 Onda', rpg:'⚔️ RPG', rainbow:'🌈 Arco-Íris' };
-
-const MODE_DESCRIPTIONS = { default:'Modo clássico, digite frases e acompanhe seu desempenho.', fury:'Mantenha acertos consecutivos: a cada sequência a meta de velocidade aumenta.', survival:'Cada caractere tem um tempo de vida. Se expirar, você perde uma vida.', sniper:'Erros consecutivos fazem você recuar caracteres; errar demais reinicia a prova.', wordhunt:'Palavras embaralhadas: descubra a palavra e digite-a corretamente.', casino:'Aposte fichas na sua própria precisão e tente aumentar sua banca.', marathon:'Digite o máximo de palavras antes que o tempo da dificuldade termine.', memory:'Memorize o texto durante o período de exibição e depois digite sem vê-lo.', wave:'Complete cada palavra antes do fim da onda para avançar.', rpg:'Cada frase é um ataque. Derrote o monstro, ganhe XP e evolua.', rainbow:'Digite corretamente para preencher a frase com as cores do arco-íris.' };
-
+const MODE_DESCRIPTIONS = { default:'Modo clássico, digite frases e acompanhe seu desempenho.', fury:'Mantenha acertos consecutivos: a cada sequência a meta de velocidade aumenta.', survival:'Cada caractere tem um tempo de vida. Se expirar, você perde uma vida.', sniper:'Erros consecutivos fazem você recuar caracteres; errar demais reinicia a prova.', wordhunt:'Palavras embaralhadas: descubra a palavra e digite-a corretamente.', casino:'Aposte fichas na sua própria precisão e tente aumentar sua banca.', marathon:'Digite o máximo de palavras antes que o tempo da dificuldade termine.', memory:'Memorize o texto durante o período de exibição e depois digite sem vê-lo.', wave:'Complete uma sequência de palavras antes que o tempo de cada palavra termine.', rpg:'Cada frase é um ataque. Derrote o monstro, ganhe XP e evolua.', rainbow:'Digite corretamente para preencher a frase com as cores do arco-íris.' };
 let currentModeId = 'default';
 let currentMode = MODES.default;
-
 export function getMode(){return currentMode;}
 export function getModeId(){return currentModeId;}
 export function getModeHandler(){return currentMode;}
-
 const DASHBOARD_LABELS = { default:['Partidas','Melhor PPM','Precisão máx.','Melhor tempo'], fury:['Streak atual','Streak máx.','Nível Fúria','Alvo PPM'], survival:['Vidas','Máx. vidas','Tempo/caract.','Erros'], sniper:['Erros seguidos','Limite','Recuo','Erros totais'], wordhunt:['Palavras','Encontradas','Restantes','Erros'], casino:['Fichas','Aposta','Vitórias seg.','Melhor PPM'], marathon:['Tempo','Palavras','PPM','Erros'], memory:['Exibição','Caracteres','Erros','Melhor PPM'], wave:['Onda','Palavras','Tempo','Erros'], rpg:['Nível','XP','HP','Ataque'], rainbow:['Pintadas','Cores','Caracteres','Erros'] };
 function dashboardData(id,mode,stats){const generic=[stats.rounds||0,stats.bestPPM||0,`${stats.bestAccuracy||0}%`,stats.bestTime==null?'—':`${stats.bestTime}s`];switch(id){case'fury':return[mode.streak,mode.maxStreak,mode.furyLevel,mode.targetPPM];case'survival':return[`${mode.lives}/${mode.maxLives}`,mode.maxLives,`${mode.charLife}s`,mode.errors];case'sniper':return[mode.consecutiveErrors,mode.maxErrors,mode.rewind,mode.totalErrors];case'wordhunt':return[mode.totalWords,mode.foundWords,Math.max(0,mode.totalWords-mode.foundWords),mode.errors];case'casino':return[mode.chips,mode.bet,mode.winStreak,stats.bestPPM||0];case'marathon':return[`${mode.timeLeft}s`,mode.wordsTyped,mode.wordsTyped>0?Math.round(mode.wordsTyped/Math.max(1,(mode.timeLimit-mode.timeLeft)/60)):0,mode.errors];case'memory':return[`${mode.displayTime}s`,mode.typed.length,mode.errors,stats.bestPPM||0];case'wave':return[mode.waveIndex,mode.totalWords,`${Math.ceil(mode.timeLeft||0)}s`,mode.errors];case'rpg':return[`Lv.${mode.player.level}`,`${mode.player.xp}/${mode.player.xpToNext}`,`${mode.playerHP}/${mode.maxPlayerHP}`,mode.player.attack];case'rainbow':return[`${mode.painted}/${mode.typed.length||0}`,mode.colors.length,mode.typed.length,mode.errors];default:return generic;}}
 export function renderModeDashboard(){const grid=document.getElementById('mode-dashboard-grid');const title=document.getElementById('mode-dashboard-title');if(!grid)return;const id=currentModeId;const labels=DASHBOARD_LABELS[id]||DASHBOARD_LABELS.default;const stats=getModeStats(id);const values=dashboardData(id,currentMode,stats);if(title)title.textContent=`${MODE_NAMES[id]||id} · dados exclusivos`;grid.innerHTML=labels.map((label,i)=>`<div class="mode-data-card"><span class="mode-data-label">${label}</span><span class="mode-data-value">${values[i]??'—'}</span></div>`).join('');}
