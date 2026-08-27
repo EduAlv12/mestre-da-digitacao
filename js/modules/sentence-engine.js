@@ -1,10 +1,25 @@
 // js/modules/sentence-engine.js
 import { SENTENCES } from './utils.js';
+import { SENTENCE_BANK } from './sentence-bank.js';
 
-const STORAGE_KEY = 'mestre_sentence_history_v2';
-const GLOBAL_RECENT_LIMIT = 40;
-const DIFFICULTY_RECENT_LIMIT = 18;
-const SESSION_RECENT_LIMIT = 6;
+const STORAGE_KEY = 'mestre_sentence_history_v3';
+const GLOBAL_RECENT_LIMIT = 60;
+const DIFFICULTY_RECENT_LIMIT = 24;
+const SESSION_RECENT_LIMIT = 8;
+
+const MODE_CATEGORIES = {
+  default: ['cotidiano', 'ciencia'],
+  fury: ['tecnologia', 'criatividade'],
+  survival: ['natureza', 'cotidiano'],
+  sniper: ['ciencia', 'tecnologia'],
+  wordhunt: ['cotidiano', 'criatividade'],
+  casino: ['cotidiano', 'historia'],
+  marathon: ['cotidiano', 'tecnologia'],
+  memory: ['ciencia', 'natureza'],
+  wave: ['natureza', 'aventura'],
+  rpg: ['historia', 'criatividade'],
+  rainbow: ['criatividade', 'natureza']
+};
 
 let sessionRecent = [];
 
@@ -63,25 +78,28 @@ function remember(history, difficulty, sentence) {
   ].slice(-SESSION_RECENT_LIMIT);
 }
 
+function getSupplementalPool(difficulty, modeId) {
+  const source = SENTENCE_BANK[difficulty] || {};
+  const categories = MODE_CATEGORIES[modeId] || [];
+  const all = Object.values(source).flat();
+  const preferred = categories.flatMap(category => source[category] || []);
+
+  // A preferência de modo orienta a variedade, mas nunca deixa o banco vazio.
+  return [...new Set(preferred.length ? preferred : all)];
+}
+
 /**
- * Escolhe uma frase evitando repetições recentes.
- *
- * A rotação possui três camadas:
- * 1. memória da sessão atual;
- * 2. memória persistente da dificuldade;
- * 3. memória global entre dificuldades e recarregamentos.
- *
- * Isso evita que trocar de dificuldade imediatamente traga de volta
- * uma frase que acabou de aparecer em outro conjunto.
+ * Escolhe uma frase com rotação persistente, dificuldade e preferência temática.
+ * O modeId é opcional para manter compatibilidade com chamadas antigas.
  */
-export function getNextSentence(difficulty = 'easy') {
+export function getNextSentence(difficulty = 'easy', modeId = 'default') {
   const safeDifficulty = Object.prototype.hasOwnProperty.call(SENTENCES, difficulty)
     ? difficulty
     : 'easy';
 
-  const pool = Array.isArray(SENTENCES[safeDifficulty]) && SENTENCES[safeDifficulty].length
-    ? [...new Set(SENTENCES[safeDifficulty])]
-    : [...new Set(SENTENCES.easy || [])];
+  const basePool = Array.isArray(SENTENCES[safeDifficulty]) ? SENTENCES[safeDifficulty] : [];
+  const supplementalPool = getSupplementalPool(safeDifficulty, modeId);
+  const pool = [...new Set([...basePool, ...supplementalPool])];
 
   if (!pool.length) return '';
 
@@ -90,33 +108,25 @@ export function getNextSentence(difficulty = 'easy') {
   const globalRecent = new Set(history.global || []);
   const session = new Set(sessionRecent);
 
-  // Primeiro tentamos uma frase que não tenha aparecido recentemente
-  // nem na sessão atual.
   let candidates = pool.filter(sentence =>
     !session.has(sentence) &&
     !difficultyRecent.has(sentence) &&
     !globalRecent.has(sentence)
   );
 
-  // Se o banco específico for pequeno, relaxamos apenas a memória global.
+  // Se o banco específico já foi parcialmente consumido, relaxamos o global.
   if (!candidates.length) {
     candidates = pool.filter(sentence =>
       !session.has(sentence) && !difficultyRecent.has(sentence)
     );
   }
 
-  // Se todas já foram usadas dentro da janela, a sessão continua
-  // sem travar: permitimos as mais antigas, preservando as recentes.
-  if (!candidates.length) {
-    candidates = pool.filter(sentence => !session.has(sentence));
-  }
-
+  // Em último caso, preservamos ao menos a anti-repetição da sessão.
+  if (!candidates.length) candidates = pool.filter(sentence => !session.has(sentence));
   if (!candidates.length) candidates = pool;
 
-  // Entre os candidatos restantes, evita escolher repetidamente frases
-  // de tamanho muito parecido quando houver alternativas.
   const last = sessionRecent.at(-1);
-  if (last && candidates.length > 2) {
+  if (last && candidates.length > 3) {
     const lastLength = last.length;
     const varied = candidates.filter(sentence => Math.abs(sentence.length - lastLength) >= 12);
     if (varied.length) candidates = varied;
@@ -133,8 +143,12 @@ export function clearSentenceHistory(difficulty = null) {
 
   if (difficulty) {
     delete history.byDifficulty[difficulty];
-    history.global = history.global.filter(sentence => !SENTENCES[difficulty]?.includes(sentence));
-    sessionRecent = sessionRecent.filter(sentence => !SENTENCES[difficulty]?.includes(sentence));
+    const known = new Set([
+      ...(SENTENCES[difficulty] || []),
+      ...Object.values(SENTENCE_BANK[difficulty] || {}).flat()
+    ]);
+    history.global = history.global.filter(sentence => !known.has(sentence));
+    sessionRecent = sessionRecent.filter(sentence => !known.has(sentence));
   } else {
     history.global = [];
     history.byDifficulty = {};
