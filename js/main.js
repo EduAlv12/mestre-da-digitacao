@@ -7,7 +7,6 @@ import { setDifficulty, setTheme, setSoundProfile, loadSavedSettings, setupModal
 import { loadSavedMode } from './modes/index.js';
 import { setupChangelog } from './modules/changelog.js';
 import { setupRestartControl } from './modules/restart-control.js';
-import './modules/ui-fixes.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🚀 Mestre da Digitação iniciado!');
