@@ -24,12 +24,15 @@ document.addEventListener('DOMContentLoaded', () => {
   setupRestartControl();
   setDifficulty('easy');
 
-  // Se a primeira inicialização foi interrompida por alguma transição de UI,
-  // renderiza a frase somente quando o quadro ainda estiver vazio.
-  requestAnimationFrame(() => {
+  // A dificuldade inicial já chama initTest(). Esta segunda verificação é
+  // deliberadamente defensiva: alguns modos podem restaurar o estado durante
+  // a primeira inicialização. Nunca reinicializa uma frase válida.
+  const ensureInitialSentence = () => {
     const textDisplay = document.getElementById('text-display');
-    if (!textDisplay?.textContent?.trim() || !state.currentText) initTest();
-  });
+    if (!state.currentText || !textDisplay?.textContent?.trim()) initTest();
+  };
+  requestAnimationFrame(ensureInitialSentence);
+  setTimeout(ensureInitialSentence, 80);
 
   loadAchievements();
   updateGlobalLevelUI();
