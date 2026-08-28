@@ -52,23 +52,30 @@ function buildChangelog() {
   modal.addEventListener('click', e => { if (e.target === modal) close(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
 
+  const group = document.createElement('div');
+  group.className = 'control-group';
+  const unseen = localStorage.getItem(CHANGELOG_SEEN_KEY) !== CHANGELOG_VERSION;
+  group.innerHTML = `<label>Atualização</label><button type="button" class="select-trigger" id="changelog-trigger"><span>🆕 O que mudou?</span>${unseen ? '<span class="new-dot" aria-label="Nova atualização"></span>' : ''}</button>`;
+
+  // A UI V3 move os controles para o painel e oculta a barra original.
+  // Por isso, inserimos o menu diretamente na mesma grade de Som.
+  const v3TrainGrid = document.querySelector('.ui-v3-group .ui-v3-controls');
   const controls = document.querySelector('.header-controls');
-  if (controls) {
-    const group = document.createElement('div');
-    group.className = 'control-group';
-    const unseen = localStorage.getItem(CHANGELOG_SEEN_KEY) !== CHANGELOG_VERSION;
-    group.innerHTML = `<label>Atualização</label><button type="button" class="select-trigger" id="changelog-trigger"><span>🆕 O que mudou?</span>${unseen ? '<span class="new-dot" aria-label="Nova atualização"></span>' : ''}</button>`;
+  const soundGroup = document.getElementById('sound-trigger')?.closest('.control-group');
 
-    const soundGroup = controls.querySelector('#sound-trigger')?.closest('.control-group');
-    if (soundGroup) soundGroup.insertAdjacentElement('afterend', group);
+  if (v3TrainGrid) {
+    if (soundGroup && soundGroup.parentElement === v3TrainGrid) soundGroup.insertAdjacentElement('afterend', group);
+    else v3TrainGrid.appendChild(group);
+  } else if (controls) {
+    if (soundGroup && soundGroup.parentElement === controls) soundGroup.insertAdjacentElement('afterend', group);
     else controls.appendChild(group);
-
-    group.querySelector('button').addEventListener('click', () => {
-      modal.classList.add('active');
-      localStorage.setItem(CHANGELOG_SEEN_KEY, CHANGELOG_VERSION);
-      group.querySelector('.new-dot')?.remove();
-    });
   }
+
+  group.querySelector('button').addEventListener('click', () => {
+    modal.classList.add('active');
+    localStorage.setItem(CHANGELOG_SEEN_KEY, CHANGELOG_VERSION);
+    group.querySelector('.new-dot')?.remove();
+  });
 }
 
 export function setupChangelog() { buildChangelog(); }
