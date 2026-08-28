@@ -12,13 +12,8 @@ export function loadAchievements() {
   const modeId = state.currentModeId;
   const stats = getModeStats(modeId);
   const medals = MODE_MEDALS[modeId] || [];
-
   const title = document.getElementById('medals-title');
-  if (title) {
-    const modeName = state.currentModeId.charAt(0).toUpperCase() + state.currentModeId.slice(1);
-    title.textContent = `🏅 Medalhas (Modo ${modeName})`;
-  }
-
+  if (title) title.textContent = `🏅 Medalhas (Modo ${state.currentModeId.charAt(0).toUpperCase() + state.currentModeId.slice(1)})`;
   const container = document.getElementById('standard-medals');
   if (container) {
     container.innerHTML = '';
@@ -27,16 +22,10 @@ export function loadAchievements() {
       const div = document.createElement('div');
       div.className = `medal-item ${count > 0 ? 'unlocked' : ''}`;
       div.id = `badge-${medal.id}`;
-      div.innerHTML = `
-        <span class="badge-counter ${count > 0 ? 'active' : ''}" id="count-${medal.id}">${count || 0}</span>
-        <div class="medal-icon">${medal.icon}</div>
-        <div class="medal-name">${medal.name}</div>
-        <div class="medal-req">${medal.req}</div>
-      `;
+      div.innerHTML = `<span class="badge-counter ${count > 0 ? 'active' : ''}" id="count-${medal.id}">${count || 0}</span><div class="medal-icon">${medal.icon}</div><div class="medal-name">${medal.name}</div><div class="medal-req">${medal.req}</div>`;
       container.appendChild(div);
     });
   }
-
   const customContainer = document.getElementById('custom-medals');
   if (customContainer) customContainer.classList.add('hidden');
 }
@@ -47,33 +36,16 @@ export function renderAchievementsUI() {
   const modeId = state.currentModeId;
   const medals = MODE_MEDALS[modeId] || [];
   const stats = getModeStats(modeId);
-
   let html = medals.map(medal => {
     const count = stats.medalCounts[medal.id] || 0;
     const unlocked = count > 0;
-    return `<div class="achievement-card ${unlocked ? 'unlocked' : 'locked'}">
-      <div class="achievement-icon">${medal.icon}</div>
-      <div class="achievement-info">
-        <span class="achievement-title">${medal.name}</span>
-        <span class="achievement-desc">${medal.req}</span>
-        <span class="achievement-status">${unlocked ? `✓ Desbloqueado (${count}x)` : '🔒 Bloqueado'}</span>
-      </div>
-    </div>`;
+    return `<div class="achievement-card ${unlocked ? 'unlocked' : 'locked'}"><div class="achievement-icon">${medal.icon}</div><div class="achievement-info"><span class="achievement-title">${medal.name}</span><span class="achievement-desc">${medal.req}</span><span class="achievement-status">${unlocked ? `✓ Desbloqueado (${count}x)` : '🔒 Bloqueado'}</span></div></div>`;
   }).join('');
-
   html += `<div class="achievement-divider" style="grid-column:1/-1;border-top:1px solid var(--card-border);margin:12px 0;padding-top:12px;font-size:0.7rem;font-weight:600;color:var(--text-muted);text-align:center;">🌍 Conquistas Globais</div>`;
   html += ACHIEVEMENTS_LIST.map(ach => {
     const unlocked = state.userStats.unlockedAchievements.includes(ach.id);
-    return `<div class="achievement-card ${unlocked ? 'unlocked' : 'locked'}">
-      <div class="achievement-icon">${ach.icon}</div>
-      <div class="achievement-info">
-        <span class="achievement-title">${ach.title}</span>
-        <span class="achievement-desc">${ach.desc}</span>
-        <span class="achievement-status">${unlocked ? '✓ Desbloqueado' : '🔒 Bloqueado'}</span>
-      </div>
-    </div>`;
+    return `<div class="achievement-card ${unlocked ? 'unlocked' : 'locked'}"><div class="achievement-icon">${ach.icon}</div><div class="achievement-info"><span class="achievement-title">${ach.title}</span><span class="achievement-desc">${ach.desc}</span><span class="achievement-status">${unlocked ? '✓ Desbloqueado' : '🔒 Bloqueado'}</span></div></div>`;
   }).join('');
-
   container.innerHTML = html;
 }
 
@@ -106,7 +78,6 @@ export function checkTimeAndStreakAchievements() {
   const hour = now.getHours();
   if (hour >= 0 && hour < 5) unlockAchievement('night_owl');
   if (hour >= 6 && hour < 8) unlockAchievement('morning_coffee');
-
   const today = getLocalDateStr(now);
   if (state.userStats.lastActiveDate !== today) {
     const yesterday = new Date();
@@ -117,7 +88,6 @@ export function checkTimeAndStreakAchievements() {
     state.userStats.lastActiveDate = today;
     saveState();
   }
-  // O nome e a descrição da conquista são de 2 dias consecutivos.
   if (state.userStats.dayStreak >= 2) unlockAchievement('streak_3');
 }
 
@@ -129,12 +99,9 @@ export function checkRoundAchievements(wpm, accuracy, currentTheme) {
     if (state.userStats.totalPerfectRounds >= 10) unlockAchievement('perfect_10');
     if (state.userStats.totalPerfectRounds >= 50) unlockAchievement('perfect_50');
     if (state.userStats.totalPerfectRounds >= 100) unlockAchievement('perfect_100');
-  } else {
-    state.userStats.perfectStreak = 0;
-  }
+  } else state.userStats.perfectStreak = 0;
   if (wpm < 20 && accuracy === 100) unlockAchievement('slow_steady');
   if (wpm > 70) unlockAchievement('light_speed');
-
   state.userStats.recentWpms.push(wpm);
   if (state.userStats.recentWpms.length > 5) state.userStats.recentWpms.shift();
   if (state.userStats.recentWpms.length === 5) {
@@ -143,17 +110,14 @@ export function checkRoundAchievements(wpm, accuracy, currentTheme) {
   }
   if (wpm > 60 && accuracy < 80) unlockAchievement('fast_imperfect');
   if (currentTheme === 'matrix' || currentTheme === 'amber') unlockAchievement('hacker_80s');
-
   checkTimeAndStreakAchievements();
   saveState();
 }
 
 export function trackThemeChange(themeName) {
-  if (!state.userStats.themesUsed.includes(themeName)) {
-    state.userStats.themesUsed.push(themeName);
-    saveState();
-  }
+  if (!state.userStats.themesUsed.includes(themeName)) state.userStats.themesUsed.push(themeName);
   if (state.userStats.themesUsed.length >= 4) unlockAchievement('chameleon');
+  else saveState();
 }
 
 export function trackSpaceKey() {
@@ -163,32 +127,35 @@ export function trackSpaceKey() {
 }
 
 // ========== PROGRESSÃO GLOBAL ==========
-
+// Cada nível exige uma quantidade definida de XP. O XP restante nunca é perdido.
 export function getXPForLevel(level) {
-  return Math.floor(100 * Math.pow(1.25, level - 1));
+  const safeLevel = Math.max(1, Math.floor(Number(level) || 1));
+  return Math.max(100, Math.floor(100 * Math.pow(1.25, safeLevel - 1)));
 }
 
-// typedChars representa os caracteres efetivamente digitados na rodada.
-// Mantemos o parâmetro opcional para compatibilidade com chamadas antigas.
 export function addGlobalXP(amount, typedChars = 0) {
   const stats = state.userStats;
-  stats.globalXP = (stats.globalXP || 0) + amount;
-  if (Number.isFinite(typedChars) && typedChars > 0) {
-    stats.totalTypedChars = (stats.totalTypedChars || 0) + Math.floor(typedChars);
+  stats.globalLevel = Math.max(1, Math.floor(Number(stats.globalLevel) || 1));
+  stats.globalXP = Math.max(0, Number(stats.globalXP) || 0);
+  const gained = Math.max(0, Math.floor(Number(amount) || 0));
+  if (Number.isFinite(typedChars) && typedChars > 0) stats.totalTypedChars = (Number(stats.totalTypedChars) || 0) + Math.floor(typedChars);
+  if (gained === 0) {
+    updateGlobalLevelUI();
+    return;
   }
 
-  let needed = getXPForLevel(stats.globalLevel + 1);
+  stats.globalXP += gained;
   let leveledUp = false;
-  while (stats.globalXP >= needed) {
-    stats.globalXP -= needed;
-    stats.globalLevel++;
-    needed = getXPForLevel(stats.globalLevel + 1);
+  while (stats.globalXP >= getXPForLevel(stats.globalLevel + 1)) {
+    stats.globalXP -= getXPForLevel(stats.globalLevel + 1);
+    stats.globalLevel += 1;
     leveledUp = true;
-    if (stats.globalLevel >= 5) unlockAchievement('level_5');
-    if (stats.globalLevel >= 10) unlockAchievement('level_10');
-    if (stats.globalLevel >= 25) unlockAchievement('level_25');
-    if (stats.globalLevel >= 50) unlockAchievement('level_50');
   }
+
+  if (stats.globalLevel >= 5) unlockAchievement('level_5');
+  if (stats.globalLevel >= 10) unlockAchievement('level_10');
+  if (stats.globalLevel >= 25) unlockAchievement('level_25');
+  if (stats.globalLevel >= 50) unlockAchievement('level_50');
   if (leveledUp) showToast(`🎉 Subiu para o nível ${stats.globalLevel}!`);
   saveState();
   updateGlobalLevelUI();
@@ -198,17 +165,11 @@ export function updateGlobalLevelUI() {
   const el = document.getElementById('global-level-display');
   if (!el) return;
   const stats = state.userStats;
-  const xp = stats.globalXP || 0;
-  const level = stats.globalLevel || 1;
+  const level = Math.max(1, Math.floor(Number(stats.globalLevel) || 1));
+  const xp = Math.max(0, Number(stats.globalXP) || 0);
   const nextXP = getXPForLevel(level + 1);
   const progress = Math.min(100, Math.round((xp / nextXP) * 100));
-  el.innerHTML = `
-    <span class="global-level-badge">Nv. ${level}</span>
-    <div style="flex:1;min-width:40px;height:4px;background:var(--card-border);border-radius:4px;overflow:hidden;">
-      <div class="global-xp-bar" style="width:${progress}%;height:100%;background:var(--accent);border-radius:4px;transition:width 0.4s ease;"></div>
-    </div>
-    <span class="global-xp-text">${xp}/${nextXP}</span>
-  `;
+  el.innerHTML = `<span class="global-level-badge">Nv. ${level}</span><div style="flex:1;min-width:40px;height:4px;background:var(--card-border);border-radius:4px;overflow:hidden;"><div class="global-xp-bar" style="width:${progress}%;height:100%;background:var(--accent);border-radius:4px;transition:width 0.4s ease;"></div></div><span class="global-xp-text">${xp}/${nextXP} XP</span>`;
 }
 
 function showToast(msg) {
@@ -218,9 +179,5 @@ function showToast(msg) {
   div.className = 'toast-message';
   div.innerHTML = msg;
   document.body.appendChild(div);
-  setTimeout(() => {
-    div.style.opacity = '0';
-    div.style.transition = 'opacity 0.3s';
-    setTimeout(() => div.remove(), 300);
-  }, 3000);
+  setTimeout(() => { div.style.opacity = '0'; div.style.transition = 'opacity 0.3s'; setTimeout(() => div.remove(), 300); }, 3000);
 }

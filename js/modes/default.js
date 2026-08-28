@@ -1,19 +1,29 @@
 // js/modes/default.js
-import { state, SENTENCES } from '../modules/utils.js';
+import { state } from '../modules/utils.js';
+import { getNextSentence } from '../modules/sentence-engine.js';
 import { incrementMedal } from '../modules/stats.js';
 
 export default {
   id: 'default', name: 'Padrão', linear: true, hasTimer: false,
   typed: '', errors: 0, startTime: null, phase: 0, phaseTexts: [], currentText: '',
+  sessionChars: 0, sessionErrors: 0,
 
   init(text) {
     this.typed = ''; this.errors = 0; this.startTime = null;
+    this.sessionChars = 0; this.sessionErrors = 0;
     const diff = state.currentDifficulty;
-    const pool = SENTENCES[diff] || SENTENCES.easy;
-    const shuffled = [...pool].sort(() => Math.random() - 0.5);
-    this.phaseTexts = shuffled.slice(0, 5);
+
+    // initTest() já escolheu a primeira frase pelo Phrase Engine. Não a
+    // descarte aqui: isso causava uma segunda seleção e tornava a inicialização
+    // difícil de rastrear. As quatro frases restantes são preparadas apenas
+    // para as fases seguintes.
+    const first = text || getNextSentence(diff);
+    this.phaseTexts = [
+      first,
+      ...Array.from({ length: 4 }, () => getNextSentence(diff))
+    ].filter(Boolean);
     this.phase = 0;
-    this.currentText = this.phaseTexts[0] || text || '';
+    this.currentText = this.phaseTexts[0] || '';
     state.currentText = this.currentText;
     this.render(); this.resetInput(); this.updateProgress(0);
   },
@@ -56,24 +66,35 @@ export default {
     if (ppmEl) ppmEl.textContent = wpm; state.currentPPM = wpm;
 
     if (chars.length >= text.length) {
+      const phaseChars = chars.length;
+      this.sessionChars += phaseChars;
+      this.sessionErrors += errors;
       if (accuracy >= 90) {
         this.phase++;
         if (this.phase < this.phaseTexts.length) {
           this.currentText = this.phaseTexts[this.phase]; state.currentText = this.currentText;
-          this.render(); this.resetInput(); this.typed = ''; this.errors = 0; this.updateProgress(0);
+          this.render(); this.resetInput(); this.typed = ''; this.errors = 0;
+          state.previousInput = '';
+          this.updateProgress(0);
           if (accuracyEl) accuracyEl.textContent = '100%';
           return { playError: false, playSound: true };
         }
-        return { done: true, accuracy, wpm, playError: false };
+        const sessionAccuracy = this.sessionChars ? Math.round(((this.sessionChars - this.sessionErrors) / this.sessionChars) * 100) : 100;
+        const sessionElapsed = Math.max(0.001, (performance.now() - this.startTime) / 1000);
+        const sessionWpm = Math.round((this.sessionChars / 5) / (sessionElapsed / 60));
+        if (accuracyEl) accuracyEl.textContent = `${sessionAccuracy}%`;
+        if (ppmEl) ppmEl.textContent = sessionWpm;
+        state.currentPPM = sessionWpm;
+        return { done: true, accuracy: sessionAccuracy, wpm: sessionWpm, playError: false };
       }
-      this.render(); this.resetInput(); this.typed = ''; this.errors = 0; this.updateProgress(0);
+      this.render(); this.resetInput(); this.typed = ''; this.errors = 0; state.previousInput = ''; this.updateProgress(0);
       if (accuracyEl) accuracyEl.textContent = '100%';
       return { playError: true, playSound: true };
     }
     return { done: false, playError: chars.length > prevLen && chars.length > 0 && chars[chars.length - 1] !== text[chars.length - 1] };
   },
 
-  reset() { this.typed = ''; this.errors = 0; this.startTime = null; this.phase = 0; this.phaseTexts = []; this.currentText = ''; },
+  reset() { this.typed = ''; this.errors = 0; this.startTime = null; this.phase = 0; this.phaseTexts = []; this.currentText = ''; this.sessionChars = 0; this.sessionErrors = 0; },
   checkMedals(accuracy, wpm, time) {
     const limits = { easy: { time15: 15, time30: 30, speed60: 50 }, medium: { time15: 20, time30: 40, speed60: 60 }, hard: { time15: 30, time30: 60, speed60: 70 } }[state.currentDifficulty] || { time15: 15, time30: 30, speed60: 50 };
     if (accuracy >= 90) incrementMedal(this.id, 'accuracy');
@@ -82,7 +103,9 @@ export default {
     if (wpm >= limits.speed60 && accuracy >= 90) incrementMedal(this.id, 'speed60');
   },
   getMetrics() {
-    const chars = this.typed.length, accuracy = chars ? Math.round(((chars - this.errors) / chars) * 100) : 100;
+    const chars = this.sessionChars || this.typed.length;
+    const errors = this.sessionChars ? this.sessionErrors : this.errors;
+    const accuracy = chars ? Math.max(0, Math.round(((chars - errors) / chars) * 100)) : 100;
     const elapsed = this.startTime ? Math.max(0.001, (performance.now() - this.startTime) / 1000) : 0.001;
     return { accuracy, wpm: Math.round((chars / 5) / (elapsed / 60)) };
   },

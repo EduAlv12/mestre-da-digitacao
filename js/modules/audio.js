@@ -4,237 +4,28 @@ export class AudioEngine {
     this.ctx = null;
     this.enabled = true;
     this.profile = 'thock';
-    this.volume = 0.9;
+    this.volume = 0.72;
     this.compressor = null;
     this.masterGain = null;
-    this.currentOsc = null;
-    this.currentGain = null;
     this._initialized = false;
+    this._noiseBuffer = null;
+    this._previewToken = 0;
   }
-
-  init() {
-    if (this._initialized) return;
-    try {
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-      this.compressor = this.ctx.createDynamicsCompressor();
-      this.compressor.threshold.setValueAtTime(-8, this.ctx.currentTime);
-      this.compressor.knee.setValueAtTime(12, this.ctx.currentTime);
-      this.compressor.ratio.setValueAtTime(8, this.ctx.currentTime);
-      this.compressor.attack.setValueAtTime(0.001, this.ctx.currentTime);
-      this.compressor.release.setValueAtTime(0.04, this.ctx.currentTime);
-      this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
-      this.compressor.connect(this.masterGain);
-      this.masterGain.connect(this.ctx.destination);
-      this._initialized = true;
-    } catch (e) {
-      console.warn('Áudio não suportado:', e);
-      this.enabled = false;
-    }
-  }
-
-  setVolume(val) {
-    this.volume = parseFloat(val);
-    if (this.masterGain && this.ctx) {
-      this.masterGain.gain.setValueAtTime(this.volume, this.ctx.currentTime);
-    }
-  }
-
-  setProfile(profile) { this.profile = profile; }
-
-  stopCurrentSound(now) {
-    if (this.currentGain && this.currentOsc) {
-      try {
-        this.currentGain.gain.cancelScheduledValues(now);
-        this.currentGain.gain.setValueAtTime(this.currentGain.gain.value, now);
-        this.currentGain.gain.linearRampToValueAtTime(0.0001, now + 0.008);
-        this.currentOsc.stop(now + 0.01);
-      } catch (_) { /* ignore */ }
-    }
-  }
-
-  playKey(isSpecial = false) {
-    if (!this.enabled || this.profile === 'silent') return;
-    this.init();
-    if (!this.ctx || this.ctx.state === 'closed') return;
-    if (this.ctx.state === 'suspended') this.ctx.resume();
-    
-    const now = this.ctx.currentTime;
-    this.stopCurrentSound(now);
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    this.currentOsc = osc;
-    this.currentGain = gain;
-    osc.connect(gain);
-    gain.connect(this.compressor);
-
-    const detune = (Math.random() - 0.5) * 35;
-    let baseFreq = 600,
-      endFreq = 150,
-      duration = 0.04,
-      waveType = 'triangle',
-      baseGain = 0.80;
-
-    switch (this.profile) {
-      case 'thock':
-        waveType = 'triangle';
-        baseFreq = isSpecial ? 200 : 380;
-        endFreq = isSpecial ? 70 : 120;
-        duration = 0.045;
-        baseGain = 1.20;
-        break;
-      case 'pop':
-        waveType = 'sine';
-        baseFreq = isSpecial ? 420 : 720;
-        endFreq = isSpecial ? 180 : 280;
-        duration = 0.035;
-        baseGain = 1.00;
-        break;
-      case 'retro':
-        waveType = 'sawtooth';
-        baseFreq = isSpecial ? 320 : 880;
-        endFreq = isSpecial ? 130 : 380;
-        duration = 0.03;
-        baseGain = 0.80;
-        break;
-      case 'typewriter':
-        waveType = 'square';
-        baseFreq = isSpecial ? 280 : 1150;
-        endFreq = isSpecial ? 90 : 220;
-        duration = 0.028;
-        baseGain = 1.10;
-        break;
-      case 'clack':
-        waveType = 'square';
-        baseFreq = isSpecial ? 400 : 1200;
-        endFreq = isSpecial ? 150 : 500;
-        duration = 0.025;
-        baseGain = 1.20;
-        break;
-      case 'deep':
-        waveType = 'sine';
-        baseFreq = isSpecial ? 180 : 300;
-        endFreq = isSpecial ? 60 : 100;
-        duration = 0.06;
-        baseGain = 1.60;
-        break;
-      case 'clicky':
-        waveType = 'triangle';
-        baseFreq = isSpecial ? 500 : 1500;
-        endFreq = isSpecial ? 200 : 700;
-        duration = 0.02;
-        baseGain = 1.10;
-        break;
-    }
-
-    osc.type = waveType;
-    osc.frequency.setValueAtTime(baseFreq + detune, now);
-    osc.frequency.exponentialRampToValueAtTime(Math.max(40, endFreq), now + duration);
-    
-    const finalGain = baseGain * 0.6;
-    gain.gain.setValueAtTime(finalGain * 0.2, now);
-    gain.gain.linearRampToValueAtTime(finalGain, now + 0.005);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration + 0.005);
-    osc.start(now);
-    osc.stop(now + duration + 0.01);
-  }
-
-  playErrorSound() {
-    if (!this.enabled || this.profile === 'silent') return;
-    this.init();
-    if (!this.ctx || this.ctx.state === 'closed') return;
-    if (this.ctx.state === 'suspended') this.ctx.resume();
-    
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(880, now);
-    osc.frequency.exponentialRampToValueAtTime(440, now + 0.12);
-    gain.gain.setValueAtTime(0.80 * this.volume, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.12);
-  }
-
-  playThemeSwitch() {
-    if (!this.enabled || this.profile === 'silent') return;
-    this.init();
-    if (!this.ctx || this.ctx.state === 'closed') return;
-    if (this.ctx.state === 'suspended') this.ctx.resume();
-    
-    const now = this.ctx.currentTime;
-    this.stopCurrentSound(now);
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.connect(gain);
-    gain.connect(this.compressor);
-    osc.frequency.setValueAtTime(300, now);
-    osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
-    gain.gain.setValueAtTime(0.60, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
-    osc.start(now);
-    osc.stop(now + 0.08);
-  }
-
-  playPreview() {
-    if (this.profile === 'silent' || !this.enabled) return;
-    this.init();
-    if (!this.ctx || this.ctx.state === 'closed') return;
-    if (this.ctx.state === 'suspended') this.ctx.resume();
-    
-    const notes = [523, 659, 784];
-    notes.forEach((freq, i) => {
-      setTimeout(() => {
-        this.playKeyNote(freq, 0.08, 0.7);
-      }, i * 150);
-    });
-  }
-
-  playKeyNote(freq, duration = 0.08, volumeMul = 0.7) {
-    if (this.profile === 'silent' || !this.enabled) return;
-    if (!this.ctx) this.init();
-    if (!this.ctx || this.ctx.state === 'closed') return;
-    if (this.ctx.state === 'suspended') this.ctx.resume();
-    
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    const detune = (Math.random() - 0.5) * 20;
-    let waveType = 'triangle';
-    let baseGain = 0.80;
-    
-    switch (this.profile) {
-      case 'thock': waveType = 'triangle'; baseGain = 1.20; break;
-      case 'pop': waveType = 'sine'; baseGain = 1.00; break;
-      case 'retro': waveType = 'sawtooth'; baseGain = 0.80; break;
-      case 'typewriter': waveType = 'square'; baseGain = 1.10; break;
-      case 'clack': waveType = 'square'; baseGain = 1.20; break;
-      case 'deep': waveType = 'sine'; baseGain = 1.60; break;
-      case 'clicky': waveType = 'triangle'; baseGain = 1.10; break;
-      default: waveType = 'triangle'; baseGain = 1.00;
-    }
-    
-    osc.type = waveType;
-    osc.frequency.setValueAtTime(freq + detune, now);
-    osc.frequency.exponentialRampToValueAtTime(freq * 0.4, now + duration);
-    const finalGain = baseGain * volumeMul * 0.5;
-    gain.gain.setValueAtTime(finalGain * 0.2, now);
-    gain.gain.linearRampToValueAtTime(finalGain, now + 0.005);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration + 0.005);
-    osc.connect(gain);
-    gain.connect(this.compressor || this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + duration + 0.01);
-  }
+  init(){if(this._initialized){this._resume();return;}try{this.ctx=new(window.AudioContext||window.webkitAudioContext)();this.compressor=this.ctx.createDynamicsCompressor();this.compressor.threshold.setValueAtTime(-18,this.ctx.currentTime);this.compressor.knee.setValueAtTime(12,this.ctx.currentTime);this.compressor.ratio.setValueAtTime(4,this.ctx.currentTime);this.compressor.attack.setValueAtTime(.001,this.ctx.currentTime);this.compressor.release.setValueAtTime(.08,this.ctx.currentTime);this.masterGain=this.ctx.createGain();this.masterGain.gain.setValueAtTime(this.volume,this.ctx.currentTime);this.compressor.connect(this.masterGain);this.masterGain.connect(this.ctx.destination);this._initialized=true;this._resume()}catch(e){console.warn('Áudio não suportado:',e);this.enabled=false}}
+  _resume(){if(this.ctx?.state==='suspended')this.ctx.resume().catch(()=>{})}
+  setVolume(val){this.volume=Math.max(0,Math.min(1,parseFloat(val)||0));if(this.masterGain&&this.ctx)this.masterGain.gain.setValueAtTime(this.volume,this.ctx.currentTime)}
+  setProfile(profile){this.profile=profile}
+  _getNoiseBuffer(){if(this._noiseBuffer||!this.ctx)return this._noiseBuffer;const length=Math.ceil(this.ctx.sampleRate*.08);this._noiseBuffer=this.ctx.createBuffer(1,length,this.ctx.sampleRate);const data=this._noiseBuffer.getChannelData(0);for(let i=0;i<length;i++)data[i]=Math.random()*2-1;return this._noiseBuffer}
+  _playNoise(now,duration,gainValue,filterType,frequency,q=.7){const source=this.ctx.createBufferSource(),gain=this.ctx.createGain(),filter=this.ctx.createBiquadFilter();source.buffer=this._getNoiseBuffer();filter.type=filterType;filter.frequency.setValueAtTime(frequency,now);filter.Q.setValueAtTime(q,now);source.connect(filter);filter.connect(gain);gain.connect(this.compressor);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(Math.max(.0001,gainValue),now+.0015);gain.gain.exponentialRampToValueAtTime(.0001,now+duration);source.start(now);source.stop(now+duration+.005)}
+  playKey(isSpecial=false,profileOverride=null){const profile=profileOverride||this.profile;if(!this.enabled||profile==='silent')return;this.init();if(!this.ctx||this.ctx.state==='closed')return;const now=this.ctx.currentTime,osc=this.ctx.createOscillator(),gain=this.ctx.createGain(),tone=this.ctx.createBiquadFilter(),detune=(Math.random()-.5)*22;let baseFreq=360,endFreq=105,duration=.055,waveType='triangle',toneGain=.10,noiseGain=.10,noiseFilter='lowpass',noiseFreq=1700,toneFilter=900;switch(profile){case'thock':baseFreq=isSpecial?210:340;endFreq=isSpecial?65:95;duration=.060;waveType='triangle';toneGain=.12;noiseGain=.16;noiseFilter='lowpass';noiseFreq=1450;toneFilter=700;break;case'pop':baseFreq=isSpecial?430:650;endFreq=isSpecial?170:230;duration=.045;waveType='sine';toneGain=.13;noiseGain=.07;noiseFilter='bandpass';noiseFreq=1800;toneFilter=1300;break;case'retro':baseFreq=isSpecial?300:820;endFreq=isSpecial?120:330;duration=.040;waveType='sawtooth';toneGain=.075;noiseGain=.06;noiseFilter='bandpass';noiseFreq=2400;toneFilter=2600;break;case'typewriter':baseFreq=isSpecial?260:1050;endFreq=isSpecial?85:200;duration=.038;waveType='square';toneGain=.065;noiseGain=.14;noiseFilter='bandpass';noiseFreq=2300;toneFilter=3000;break;case'clack':baseFreq=isSpecial?380:1250;endFreq=isSpecial?130:450;duration=.030;waveType='square';toneGain=.055;noiseGain=.18;noiseFilter='highpass';noiseFreq=1900;toneFilter=4200;break;case'deep':baseFreq=isSpecial?175:285;endFreq=isSpecial?55:85;duration=.075;waveType='sine';toneGain=.14;noiseGain=.12;noiseFilter='lowpass';noiseFreq=900;toneFilter=500;break;case'clicky':baseFreq=isSpecial?480:1450;endFreq=isSpecial?190:620;duration=.026;waveType='triangle';toneGain=.065;noiseGain=.16;noiseFilter='highpass';noiseFreq=2800;toneFilter=5000;break}
+    osc.type=waveType;osc.frequency.setValueAtTime(baseFreq+detune,now);osc.frequency.exponentialRampToValueAtTime(Math.max(40,endFreq),now+duration);tone.type='lowpass';tone.frequency.setValueAtTime(toneFilter,now);tone.frequency.exponentialRampToValueAtTime(Math.max(120,toneFilter*.45),now+duration);osc.connect(tone);tone.connect(gain);gain.connect(this.compressor);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(toneGain,now+.0015);gain.gain.exponentialRampToValueAtTime(.0001,now+duration);osc.start(now);osc.stop(now+duration+.005);this._playNoise(now,duration*.72,noiseGain,noiseFilter,noiseFreq)}
+  playErrorSound(){if(!this.enabled||this.profile==='silent')return;this.init();if(!this.ctx||this.ctx.state==='closed')return;const now=this.ctx.currentTime,osc=this.ctx.createOscillator(),gain=this.ctx.createGain();osc.type='triangle';osc.frequency.setValueAtTime(720,now);osc.frequency.exponentialRampToValueAtTime(330,now+.13);osc.connect(gain);gain.connect(this.compressor);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.16,now+.004);gain.gain.exponentialRampToValueAtTime(.0001,now+.13);osc.start(now);osc.stop(now+.135);this._playNoise(now,.045,.055,'bandpass',950,1.2)}
+  playThemeSwitch(){if(!this.enabled||this.profile==='silent')return;this.init();if(!this.ctx||this.ctx.state==='closed')return;const now=this.ctx.currentTime,osc=this.ctx.createOscillator(),gain=this.ctx.createGain();osc.type='sine';osc.connect(gain);gain.connect(this.compressor);osc.frequency.setValueAtTime(300,now);osc.frequency.exponentialRampToValueAtTime(800,now+.08);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.11,now+.005);gain.gain.exponentialRampToValueAtTime(.0001,now+.08);osc.start(now);osc.stop(now+.085)}
+  // Preview uses the exact key synthesis path without ever mutating the selected profile.
+  playPreview(profile=this.profile){if(!this.enabled||profile==='silent')return;this.init();if(!this.ctx||this.ctx.state==='closed')return;const token=++this._previewToken;[0,145,290].forEach(delay=>{setTimeout(()=>{if(token===this._previewToken)this.playKey(false,profile)},delay)})}
 }
-
-export const audioEngine = new AudioEngine();
-
-// Inicializa no primeiro clique
-document.addEventListener('click', () => {
-  audioEngine.init();
-}, { once: true });
+export const audioEngine=new AudioEngine();
+const unlockAudio=()=>audioEngine.init();
+document.addEventListener('pointerdown',unlockAudio,{passive:true});
+document.addEventListener('keydown',unlockAudio,{passive:true});
+document.addEventListener('click',unlockAudio,{once:true});
