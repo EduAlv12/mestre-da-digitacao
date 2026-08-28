@@ -49,8 +49,6 @@ function startTimer(){
   if(state.isRunning)return;
   state.isRunning=true;state.startTime=performance.now();
   const mode=getModeHandler();
-  // Modes such as Maratona and Onda own their timers. Their handleInput
-  // methods start those timers after receiving the first character.
   if(mode?.hasTimer)return;
   if(mode&&Object.prototype.hasOwnProperty.call(mode,'startTime')&&!mode.startTime)mode.startTime=state.startTime;
   clearInterval(state.timerInterval);
@@ -98,7 +96,9 @@ export function initTest({resetMode=true}={}){
   }else state.currentText=getNextSentence(difficulty,getModeId())||SENTENCES[difficulty]?.[0]||SENTENCES.easy?.[0]||'';
   if(mode?.init)mode.init(state.currentText);else if(textDisplay)textDisplay.innerHTML=state.currentText.split('').map((ch,i)=>`<span class="char ${i===0?'current':''}">${ch}</span>`).join('');
   resetControllerBaseline();
-  if(modeStatusTag&&!mode?.render)modeStatusTag.textContent=MODE_NAMES[getModeId()]||'📖 Padrão';
+  // Modos com renderização própria (ex.: RPG, Fúria, Sobrevivência) já
+  // preencheram o status no init(). O modo Padrão precisa do rótulo genérico.
+  if(modeStatusTag&&!mode?.updateUI&&!mode?.render)modeStatusTag.textContent=MODE_NAMES[getModeId()]||'📖 Padrão';
   const stats=getModeStats(getModeId()),best=document.getElementById('best-ppm-val');if(best)best.textContent=stats.bestPPM||0;
   updateProgress(0,state.currentText.length);loadAchievements();renderModeDashboard();syncContinueButton();
 }
