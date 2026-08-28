@@ -37,6 +37,14 @@ document.addEventListener('DOMContentLoaded', () => {
   if (bestEl) bestEl.textContent = stats.bestPPM || 0;
   renderChart(state.currentModeId);
 
+  // O handler de troca de modo vive em ui.js e atualiza a lógica antes deste
+  // listener. O próximo tick garante que a seção de medalhas reflita o novo modo.
+  document.addEventListener('click', event => {
+    const option = event.target.closest('#modal-modes .modal-option-btn');
+    if (!option) return;
+    setTimeout(() => loadAchievements(), 0);
+  });
+
   document.addEventListener('pointerdown', () => audioEngine.init(), { once: true, passive: true });
 
   window.addEventListener('beforeunload', () => {
