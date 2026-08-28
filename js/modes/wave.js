@@ -31,7 +31,7 @@ export default {
       return;
     }
     // Cada onda recebe uma nova palavra proveniente de uma nova frase do banco.
-    // Assim, a seleção respeita dificuldade, tema do modo e anti-repetição global.
+    // A escolha respeita dificuldade, categoria do modo e anti-repetição.
     const sentence=getNextSentence(state.currentDifficulty||'easy',this.id);
     const candidates=sentence.split(/\s+/).map(word=>word.replace(/[^\p{L}\p{N}À-ÿ'’-]/gu,'')).filter(Boolean);
     this.currentWord=(candidates.length?candidates[Math.floor(Math.random()*candidates.length)]:'onda');
@@ -40,6 +40,10 @@ export default {
     const display=document.getElementById('text-display');
     if(display)display.innerHTML=`<span style="color: var(--text-muted);">🌊 Onda ${this.waveIndex+1}</span><br><strong style="font-size:1.4em;letter-spacing:2px;">${this.currentWord}</strong><div id="wave-feedback" class="mode-feedback" aria-live="polite"></div>`;
     this.updateUI();this.updateProgress();this.resetInput();
+    // Depois que a primeira tecla iniciou a partida, cada nova palavra recebe
+    // imediatamente seu próprio intervalo de tempo. Sem isso, o contador só
+    // voltava a andar quando o usuário digitava outra tecla.
+    if(this.startTime!==null)this.startWordTimer();
   },
   startWordTimer(){
     this.stopTimer();
